@@ -35,7 +35,12 @@ with sync_playwright() as p:
     count = page.locator('html').get_attribute('data-test-count')
     print(f'Engine checks: {count} passed')
     page.goto(BASE)
+    assert visible(page, '#host-login') and not visible(page, '#start-screen')
+    page.keyboard.press('h')
+    assert not visible(page, '#host-panel')
+    page.locator('#rehearse').click()
     page.locator('#start').wait_for()
+    assert not visible(page, '#room-info')
     page.wait_for_timeout(200)
     page.screenshot(path=str(ARTIFACTS/'00-start.png'))
     # Speed up only the test's clock; production has no skip/test controls.

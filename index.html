@@ -10,7 +10,21 @@
   <link rel="stylesheet" href="network.css">
 </head>
 <body>
-  <div class="game-shell">
+  <main id="host-entry" class="host-entry">
+    <section class="host-entry-card" aria-labelledby="host-entry-title">
+      <span class="eyebrow">Я.МОЛОД</span>
+      <h1 id="host-entry-title" tabindex="-1">Вход ведущего</h1>
+      <form id="host-login">
+        <label>Почта ведущего<input id="host-email" type="email" autocomplete="username" required></label>
+        <label>Пароль<input id="host-password" type="password" autocomplete="current-password" required></label>
+        <button id="host-submit" class="primary-button" type="submit">Войти</button>
+      </form>
+      <button id="retry-room" class="primary-button" hidden>Повторить подключение</button>
+      <p id="entry-status" role="status"></p>
+      <button id="rehearse" class="text-button">Локальная репетиция</button>
+    </section>
+  </main>
+  <div id="game-shell" class="game-shell" hidden>
     <header class="topbar">
       <a class="brand" href="./" aria-label="Я.МОЛОД — на старт"><span class="brand-symbol" aria-hidden="true">я</span> Я.МОЛОД<span class="brand-caption">ИНТЕРАКТИВНАЯ НОВЕЛЛА</span></a>
       <div class="tools">
@@ -26,12 +40,21 @@
       <div class="vignette" aria-hidden="true"></div>
       <div id="location-tag" class="location-tag" hidden><span class="tiny-square"></span><span id="location-name"></span></div>
 
-      <section id="start-screen" class="start-screen" aria-label="Начало игры">
-        <div class="eyebrow"><span class="tiny-square"></span> ОДИН ГОРОД. НОВАЯ ИСТОРИЯ.</div>
-        <h1>ДОСТУП<br><span>ОТКРЫТ?</span></h1>
-        <p class="intro">Иногда новый уровень<br>начинается за пределами комнаты.</p>
-        <button id="start" class="primary-button">Начать историю <span aria-hidden="true">↵</span></button>
-        <div class="start-footnote">Пять ключей. Шесть дверей. Твой выбор.</div>
+      <section id="start-screen" class="start-screen" aria-label="Начало игры" hidden>
+        <div>
+          <div class="eyebrow"><span class="tiny-square"></span> ОДИН ГОРОД. НОВАЯ ИСТОРИЯ.</div>
+          <h1>ДОСТУП<br><span>ОТКРЫТ?</span></h1>
+          <p class="intro">Иногда новый уровень<br>начинается за пределами комнаты.</p>
+          <button id="start" class="primary-button" disabled>Начать историю <span aria-hidden="true">↵</span></button>
+          <div class="start-footnote">Пять ключей. Шесть дверей. Твой выбор.</div>
+        </div>
+        <section id="room-info" aria-labelledby="room-title" hidden>
+          <h2 id="room-title">Подключиться к игре</h2>
+          <a id="room-link" target="_blank" rel="noopener" aria-label="Открыть страницу участника"><span id="room-qr" role="img" aria-label="QR-код для подключения к игре"></span></a>
+          <p id="room-count" aria-live="polite"></p>
+          <button id="copy-room" class="secondary-button">Скопировать ссылку</button>
+          <p id="room-status" role="status"></p>
+        </section>
         <div class="edition">Я.МОЛОД <span> / </span> ПРОЛОГ</div>
       </section>
 
@@ -71,28 +94,8 @@
     <p id="host-status" role="status">История готова к запуску</p>
     <button id="pause" class="secondary-button">Пауза</button>
     <fieldset id="vote-controls" disabled><legend>Результат выбора</legend><p id="vote-instructions">Задайте ветку вместо голосования участников.</p><p id="vote-counts" hidden></p><button class="choice" data-choice="accept" aria-pressed="false"><b>А · Пойти с Соней</b><span>«Ладно, пошли. Но если там будут шишки и клей — я ухожу».</span></button><button class="choice" data-choice="decline" aria-pressed="false"><b>Б · Отправиться домой</b><span>«Нет, Сонь, сегодня без меня. Дома свои квесты».</span></button><button id="vote-finish" class="secondary-button">Завершить отсчёт</button></fieldset>
-    <section class="network-section" aria-label="Игра с участниками">
-      <h2>Подключить участников</h2>
-      <p>Создайте сессию перед началом истории. Без сессии работает локальная репетиция.</p>
-      <button id="connect-host" class="secondary-button">Подключить Firebase</button>
-      <form id="host-login">
-        <label>Почта ведущего<input id="host-email" type="email" autocomplete="username" required></label>
-        <label>Пароль<input id="host-password" type="password" autocomplete="current-password" required></label>
-        <button class="secondary-button" type="submit">Войти</button>
-      </form>
-      <div id="network-actions" hidden>
-        <button id="create-room" class="secondary-button">Создать сессию</button>
-        <button id="close-room" class="secondary-button">Закрыть сессию</button>
-        <button id="host-logout" class="text-button">Выйти из аккаунта</button>
-      </div>
-      <p id="network-status" role="status">Сетевой режим не подключён.</p>
-      <div id="room-info" hidden>
-        <div id="room-qr" role="img" aria-label="QR-код для подключения к игре"></div>
-        <a id="room-link" target="_blank" rel="noopener"></a>
-        <button id="copy-room" class="secondary-button">Скопировать ссылку</button>
-        <p id="room-count"></p>
-      </div>
-    </section>
+    <p id="network-status" role="status" hidden></p>
+    <button id="host-logout" class="text-button" hidden>Выйти из аккаунта</button>
     <button id="restart" class="text-button">Начать заново</button><p class="host-help"><kbd>H</kbd> — панель · <kbd>Пробел</kbd> — реплика<br>Панель видна на этом же экране.</p>
   </aside>
 

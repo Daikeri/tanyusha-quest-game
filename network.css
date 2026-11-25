@@ -1,10 +1,30 @@
-.network-section{border-top:1px solid var(--border);margin-top:18px;padding-top:18px}
-.network-section label{display:block;font-size:.875rem;margin:12px 0}
-.network-section input{display:block;width:100%;margin-top:6px;padding:10px;background:#10121e;color:var(--text);border:1px solid var(--border);border-radius:4px;font:inherit}
-.network-section button{margin:5px 0}
-#room-qr{background:white;padding:8px;border-radius:6px;max-width:270px;margin:12px auto}
+.host-entry{min-height:100dvh;display:grid;place-items:center;padding:24px 16px;background:radial-gradient(ellipse at top,#2d2542,var(--bg) 70%)}
+.host-entry-card{width:min(100%,420px);padding:clamp(20px,6vw,36px);background:var(--panel);border:1px solid var(--border);border-radius:8px;box-shadow:0 24px 70px #0004}
+.host-entry-card h1{margin:12px 0 26px;font-size:clamp(1.6rem,6vw,2rem)}
+.host-entry-card label{display:block;font-size:.875rem;margin:0 0 16px}
+.host-entry-card input{display:block;width:100%;margin-top:6px;padding:10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;font:inherit}
+.host-entry-card input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.host-entry-card .primary-button{width:100%}
+#entry-status,#room-status{font-size:.8rem;line-height:1.4;color:var(--muted)}
+#entry-status:empty,#room-status:empty{display:none}
+#rehearse{margin-top:12px}
+.start-screen:has(#room-info:not([hidden])){display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3%;padding-block:4%;overflow:auto}
+#room-info{text-align:center;justify-self:end;color:var(--text);background:#171a29f5;border:1px solid var(--border);border-radius:8px;padding:clamp(8px,1.5cqw,18px);width:fit-content}
+#room-title{font-size:clamp(.8rem,2cqw,1.2rem);margin:0 0 8px}
+#room-link{display:block;margin:auto;width:clamp(76px,20cqw,250px)}
+#room-qr{display:block;background:white;border-radius:4px;overflow:hidden}
 #room-qr svg{display:block;width:100%;height:auto}
-#room-link{display:block;color:var(--accent);font-size:.8rem;overflow-wrap:anywhere}
+#room-count{font-size:.8rem;color:var(--muted);margin:8px 0}
+#room-status{margin:6px 0 0;max-width:26ch}
+@media(max-width:800px){#copy-room{font-size:.7rem;padding:6px 8px}}
+@media(max-width:550px) and (orientation:portrait){
+  .start-screen:has(#room-info:not([hidden])){grid-template-columns:1fr;align-content:start;gap:14px;padding:7%}
+  .start-screen:has(#room-info:not([hidden])) h1{font-size:10cqw;margin:4% 0 2%}
+  .start-screen:has(#room-info:not([hidden])) .intro{font-size:.8rem;margin-bottom:4%}
+  .start-screen:has(#room-info:not([hidden])) .start-footnote{margin-top:8px}
+  #room-info{justify-self:center}
+  #room-link{width:clamp(98px,31cqw,150px)}
+}
 .participant-page{display:block;min-height:100dvh;height:auto;overflow:auto;padding:24px 16px;background:radial-gradient(ellipse at top,#2d2542,#10121e 70%)}
 .participant-card{width:min(100%,480px);margin:6vh auto;padding:28px 22px;background:#202332;border:1px solid var(--border);border-radius:12px}
 .participant-card h1{font-size:1.75rem;line-height:1.25;margin:24px 0}

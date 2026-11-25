@@ -43,7 +43,7 @@ const runtime={
           return result;
         }finally{$('vote').hidden=true;world.frozen=false;audio.duck(false);voting.cancel();}
       }
-      case 'end':ui.end();await online.close();break;
+      case 'end':ui.end();await online.close();online.refresh();break;
       default:throw new Error(`Неизвестная команда: ${c.type}`);
     }
   },
@@ -62,6 +62,7 @@ function setPaused(value){
   }).catch(error=>{applyPause(true);online.report(error);});
 }
 function toggleHost(force){
+  if($('game-shell').hidden)return;
   const open=force??$('host-panel').hidden;
   if(open)hostFocus=document.activeElement;
   $('host-panel').hidden=!open;$('host-toggle').setAttribute('aria-expanded',String(open));
@@ -69,22 +70,25 @@ function toggleHost(force){
 }
 async function reset(){
   if(resetting)return;
-  resetting=true;$('start').disabled=true;
-  runner.stop();voting.cancel();audio.reset();applyPause(false);world.frozen=false;world.setLocation('city');ui.reset();
+  if(!started){ui.reset();online.refresh();$('start').focus();return;}
+  resetting=true;
+  runner.stop();voting.cancel();audio.reset();applyPause(false);world.frozen=false;
   try{
     await online.close();changeVoting(null);started=false;
-    $('pause').disabled=true;$('host-status').textContent='История готова к запуску';toggleHost(false);$('start').focus();
+    world.setLocation('city');ui.reset();
+    $('pause').disabled=true;$('restart').disabled=true;$('host-status').textContent='История готова к запуску';toggleHost(false);
+    await online.prepare();
   }catch(error){online.report(error);ui.error(error);}
-  finally{resetting=false;$('start').disabled=false;online.refresh();}
+  finally{resetting=false;online.refresh();if(online.canStart())$('start').focus();}
 }
 function requestRestart(){
-  if(!started){reset();return;}
+  if(!started)return;
   confirmWasPaused=clock.paused;setPaused(true);$('restart-confirm').returnValue='cancel';$('restart-confirm').showModal();
 }
 function start(){
-  if(started||resetting||online.busy)return;
+  if(resetting||!online.canStart())return;
   try{validateScenes(scenes,resources);}catch(error){ui.error(error);return;}
-  started=true;$('start').disabled=true;$('start-screen').hidden=true;$('pause').disabled=false;
+  started=true;$('pause').disabled=false;$('restart').disabled=false;
   online.refresh();
   $('stage').tabIndex=-1;$('stage').focus({preventScroll:true});
   void audio.unlock();void runner.start('scene00');
@@ -107,6 +111,7 @@ $('fullscreen').addEventListener('click',async()=>{
 });
 document.addEventListener('fullscreenchange',()=>{$('fullscreen').setAttribute('aria-label',document.fullscreenElement?'Выйти из полного экрана':'Полный экран');});
 document.addEventListener('keydown',event=>{
+  if($('game-shell').hidden)return;
   if(event.repeat||event.ctrlKey||event.metaKey||event.altKey||$('restart-confirm').open)return;
   if(['INPUT','TEXTAREA','SELECT'].includes(event.target.tagName)||event.target.isContentEditable)return;
   if(event.code==='KeyH'){event.preventDefault();toggleHost();return;}
@@ -122,4 +127,4 @@ function frame(now){
   const delta=frameTime===null?0:Math.min(100,now-frameTime);frameTime=now;
   clock.tick(delta);if(!clock.paused)audio.tick(delta);world.render(delta);requestAnimationFrame(frame);
 }
-reset();requestAnimationFrame(frame);
+world.setLocation('city');$('pause').disabled=true;$('restart').disabled=true;requestAnimationFrame(frame);

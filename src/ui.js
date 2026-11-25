@@ -9,7 +9,7 @@ export class GameUI {
   reset(){
     this.advanceAction=null;this.lastAdvance=-Infinity;this.fadeValue=0;
     for(const id of ['dialogue','poster','chat','vote','ending','pause-overlay','error','title-card','location-tag'])$(id).hidden=true;
-    $('fade').style.opacity='0';$('start-screen').hidden=false;
+    $('fade').style.opacity='0';
     $('chapter-index').textContent='00';$('chapter-name').textContent='ДО НАЧАЛА ИСТОРИИ';$('control-hint').textContent='Новая история ближе, чем кажется';
   }
   sceneChanged(scene){$('chapter-index').textContent=scene.chapter;$('chapter-name').textContent=scene.title.toUpperCase();$('host-status').textContent=`Сцена ${scene.chapter} · ${scene.title}`;$('control-hint').textContent='ПРОБЕЛ — продолжить · H — ведущий';}
