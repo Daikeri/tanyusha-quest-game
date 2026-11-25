@@ -26,15 +26,10 @@ export function setupHostSession({isStarted, changeVoting, pauseGame}) {
     $('retry-room').hidden = !authenticated || busy;
     $('rehearse').disabled = busy || !!session?.room;
     $('room-info').hidden = !roomReady;
-    $('host-logout').hidden = !roomReady && !rehearsal;
-    $('host-logout').textContent = rehearsal ? 'Вернуться ко входу' : 'Выйти из аккаунта';
-    $('host-logout').disabled = busy || isStarted();
+    $('host-logout').hidden = !inGame || isStarted();
+    $('host-logout').disabled = busy;
     $('start').disabled = !canStart();
-    $('host-mode').textContent = rehearsal ? 'ЛОКАЛЬНАЯ РЕПЕТИЦИЯ' : 'ИГРА С УЧАСТНИКАМИ';
-    $('vote-instructions').textContent = rehearsal ? 'Задайте ветку вместо голосования участников.' : 'Голоса собираются с телефонов. При ничьей или отсутствии голосов выберите ветку.';
     if (wasInGame && !inGame) {
-      $('host-panel').hidden = true;
-      $('host-toggle').setAttribute('aria-expanded', 'false');
       $('host-entry-title').focus();
     }
     if (!wasInGame && inGame) {
@@ -116,10 +111,10 @@ export function setupHostSession({isStarted, changeVoting, pauseGame}) {
     void run(async () => {
       const email = $('host-email').value.trim();
       const password = $('host-password').value;
-      $('host-password').value = '';
       entryStatus.textContent = 'Входим…';
       await connect();
       await session.login(email, password);
+      $('host-password').value = '';
       authenticated = true;
       render();
       await prepareRoom();
@@ -127,6 +122,7 @@ export function setupHostSession({isStarted, changeVoting, pauseGame}) {
   });
   $('retry-room').addEventListener('click', () => void run(prepareRoom));
   $('rehearse').addEventListener('click', () => {
+    $('host-password').value = '';
     rehearsal = true;
     render();
   });

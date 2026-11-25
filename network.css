@@ -8,22 +8,20 @@
 #entry-status,#room-status{font-size:.8rem;line-height:1.4;color:var(--muted)}
 #entry-status:empty,#room-status:empty{display:none}
 #rehearse{margin-top:12px}
-.start-screen:has(#room-info:not([hidden])){display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3%;padding-block:4%;overflow:auto}
-#room-info{text-align:center;justify-self:end;color:var(--text);background:#171a29f5;border:1px solid var(--border);border-radius:8px;padding:clamp(8px,1.5cqw,18px);width:fit-content}
+.start-screen:has(#room-info:not([hidden])){display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3%;padding-block:clamp(8px,2cqw,24px);padding-right:clamp(8px,2cqw,24px);overflow:auto}
+#room-info{text-align:center;align-self:start;justify-self:end;color:var(--text);background:#171a29f5;border:1px solid var(--border);border-radius:8px;padding:clamp(8px,1.5cqw,18px);width:clamp(118px,24cqw,286px)}
 #room-title{font-size:clamp(.8rem,2cqw,1.2rem);margin:0 0 8px}
-#room-link{display:block;margin:auto;width:clamp(76px,20cqw,250px)}
+#room-link{display:block;margin:auto;width:min(100%,250px)}
 #room-qr{display:block;background:white;border-radius:4px;overflow:hidden}
 #room-qr svg{display:block;width:100%;height:auto}
 #room-count{font-size:.8rem;color:var(--muted);margin:8px 0}
 #room-status{margin:6px 0 0;max-width:26ch}
-@media(max-width:800px){#copy-room{font-size:.7rem;padding:6px 8px}}
+@container(max-width:700px){#copy-room{font-size:.7rem;padding:6px 8px}}
 @media(max-width:550px) and (orientation:portrait){
-  .start-screen:has(#room-info:not([hidden])){grid-template-columns:1fr;align-content:start;gap:14px;padding:7%}
-  .start-screen:has(#room-info:not([hidden])) h1{font-size:10cqw;margin:4% 0 2%}
+  .start-screen:has(#room-info:not([hidden])) h1{font-size:9cqw;margin:8% 0 4%}
   .start-screen:has(#room-info:not([hidden])) .intro{font-size:.8rem;margin-bottom:4%}
   .start-screen:has(#room-info:not([hidden])) .start-footnote{margin-top:8px}
-  #room-info{justify-self:center}
-  #room-link{width:clamp(98px,31cqw,150px)}
+  #room-info{width:clamp(112px,36cqw,170px)}
 }
 .participant-page{display:block;min-height:100dvh;height:auto;overflow:auto;padding:24px 16px;background:radial-gradient(ellipse at top,#2d2542,#10121e 70%)}
 .participant-card{width:min(100%,480px);margin:6vh auto;padding:28px 22px;background:#202332;border:1px solid var(--border);border-radius:12px}

@@ -44,7 +44,10 @@ def instrument(context, uid):
       session.auth = {currentUser: role === 'host' ? null : {uid: UID}};
       session.a = {
         signInWithEmailAndPassword: async (auth, email, password) => {
-          if (password !== 'emulator-only') throw Object.assign(new Error('Invalid credentials'), {code: 'auth/invalid-credential'});
+          if (password !== 'emulator-only') {
+            await new Promise(resolve => { window.releaseTestLogin = resolve; });
+            throw Object.assign(new Error('Invalid credentials'), {code: 'auth/invalid-credential'});
+          }
           session.auth.currentUser = {uid: UID};
         },
         signInAnonymously: async () => { session.auth.currentUser = {uid: UID}; },
@@ -83,6 +86,8 @@ def advance_to(page, selector):
             return
         if page.locator('#dialogue').is_visible():
             page.locator('#next-dialogue').click()
+        elif page.locator('#chat').is_visible():
+            page.locator('#next-chat').click()
         page.wait_for_timeout(160)
     raise AssertionError(f'Did not reach {selector}')
 
@@ -102,11 +107,15 @@ with sync_playwright() as p:
     host.goto(BASE)
     assert host.locator('#host-login').is_visible()
     assert not host.locator('#start-screen').is_visible()
-    assert not host.locator('#host-panel').is_visible()
+    assert host.locator('#host-panel, #host-toggle').count() == 0
     host.locator('#host-email').fill('host@example.test')
     host.locator('#host-password').fill('wrong-password')
     host.locator('#host-submit').click()
+    host.wait_for_function("() => typeof window.releaseTestLogin === 'function'")
+    assert host.locator('#host-password').input_value() == 'wrong-password'
+    host.evaluate('window.releaseTestLogin()')
     host.wait_for_function("document.querySelector('#entry-status').textContent.startsWith('Не удалось войти')")
+    assert host.locator('#host-password').input_value() == 'wrong-password'
     assert not host.locator('#start-screen').is_visible()
     assert admin('rooms') is None
     host.evaluate('''() => {
@@ -120,23 +129,26 @@ with sync_playwright() as p:
     host.locator('#host-password').fill('emulator-only')
     host.locator('#host-submit').click()
     host.locator('#retry-room').wait_for()
+    assert host.locator('#host-password').input_value() == ''
     assert not host.locator('#start-screen').is_visible()
     assert admin('rooms') is None
     host.locator('#retry-room').click()
     host.locator('#start-screen #room-qr svg').wait_for()
     assert not host.locator('#host-entry').is_visible()
-    assert not host.locator('#host-panel #room-info').count()
     public_link = urlsplit(host.locator('#room-link').get_attribute('href'))
     room = host.evaluate('window.testSession.room')
     assert list(admin('rooms')) == [room]
     assert admin(f'rooms/{room}/meta/status') == 'lobby'
-    for width, height in [(1280, 720), (390, 844), (844, 390)]:
+    for width, height in [(1280, 720), (390, 844), (320, 640), (844, 390)]:
         host.set_viewport_size({'width': width, 'height': height})
-        assert host.evaluate('''() => {
+        bounds = host.evaluate('''() => {
           const screen = document.querySelector('#start-screen').getBoundingClientRect();
-          const qr = document.querySelector('#room-qr').getBoundingClientRect();
-          return qr.left >= screen.left && qr.right <= screen.right && qr.top >= screen.top && qr.bottom <= screen.bottom;
-        }'''), f'QR clipped at {width}×{height}'
+          const card = document.querySelector('#room-info').getBoundingClientRect();
+          return [card.top - screen.top, screen.right - card.right, screen.bottom - card.bottom];
+        }''')
+        top, right, bottom = bounds
+        assert 0 <= top <= 24 and 0 <= right <= 24 and abs(top - right) < 1 and bottom >= 0, (
+            f'QR card outside the top right corner at {width}×{height}: {bounds}')
     host.set_viewport_size({'width': 1280, 'height': 900})
     assert public_link.geturl() == f'https://daikeri.github.io/tanyusha-quest-game/join.html?room={room}'
     link = f'{BASE}/join.html?{public_link.query}'
@@ -162,7 +174,6 @@ with sync_playwright() as p:
     advance_to(host, '#vote')
     a.locator('[data-choice="accept"]').wait_for()
     poll = admin(f'rooms/{room}/activePoll')
-    host.locator('#host-toggle').click()
     host.locator('#pause').click()
     a.wait_for_function("document.querySelector('#participant-timer').textContent === 'Пауза'")
     denied(a, f'rooms/{room}/polls/{poll}/votes/participant-a', {'choice': 'accept', 'at': {'.sv': 'timestamp'}})
@@ -187,17 +198,14 @@ with sync_playwright() as p:
     print('Pause/resume, own answer replacement, reconnect, foreign/invalid writes denied: passed', flush=True)
 
     host.locator('#vote-finish').click()
-    host.wait_for_function("!document.querySelector('[data-choice=accept]').disabled")
+    host.locator('#vote [data-choice="accept"]').wait_for()
     result = admin(f'rooms/{room}/polls/{poll}/result')
     assert result == {'accept': 1, 'decline': 1, 'total': 2, 'choice': ''}, result
     assert admin(f'rooms/{room}/polls/{poll}/state/result') is None
     denied(a, f'rooms/{room}/polls/{poll}/result', read=True)
     denied(a, f'rooms/{room}/polls/{poll}/votes/participant-a', {'choice': 'accept', 'at': {'.sv': 'timestamp'}})
     host.locator('[data-choice="accept"]').click()
-    host.wait_for_function("document.querySelector('#host-status').textContent.startsWith('Результат готов')")
-    host.locator('#host-close').click()
-    host.locator('#stage').focus()
-    host.keyboard.press('Space')
+    host.locator('#vote-next').click()
     a.wait_for_function("document.querySelector('#participant-status').textContent.startsWith('Выбрано:')")
     assert admin(f'rooms/{room}/polls/{poll}/state/result/choice') == 'accept'
     print('Atomic close, hidden result, tie resolution, explicit publication: passed', flush=True)
@@ -222,9 +230,8 @@ with sync_playwright() as p:
     denied(a, f'rooms/{room}/polls/{timed}/votes/participant-a', {'choice': 'accept', 'at': {'.sv': 'timestamp'}})
     host.evaluate('(id) => window.testSession.cancelPoll(id)', timed)
     a.wait_for_function("document.querySelector('#participant-title').textContent === 'Вы в игре'")
-    host.locator('#host-toggle').click()
-    host.locator('#restart').click()
-    host.locator('#restart-confirm [value="restart"]').click()
+    advance_to(host, '#ending')
+    host.locator('#replay').click()
     host.locator('#start-screen #room-qr svg').wait_for()
     new_room = host.evaluate('window.testSession.room')
     assert new_room != room and admin(f'rooms/{new_room}/meta/status') == 'lobby'
@@ -235,7 +242,6 @@ with sync_playwright() as p:
     assert 'завершена' in b.locator('#participant-status').inner_text()
     print('Concurrent close, server deadline, cancellation and closed-room rejection: passed', flush=True)
 
-    host.locator('#host-toggle').click()
     host.locator('#host-logout').click()
     host.locator('#host-login').wait_for()
     assert admin(f'rooms/{new_room}/meta/status') == 'closed'

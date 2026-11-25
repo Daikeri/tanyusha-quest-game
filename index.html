@@ -31,7 +31,8 @@
         <span class="key-count" aria-label="Собрано 0 из 5 ключей"><span aria-hidden="true">⚿</span> <b id="key-count">0</b><span>/ 5</span></span>
         <button class="icon-button" id="sound" aria-label="Отключить звук" aria-pressed="false" title="Звук">Звук вкл.</button>
         <button class="icon-button" id="fullscreen" title="Полный экран" aria-label="Полный экран">⛶</button>
-        <button class="icon-button" id="host-toggle" aria-expanded="false" aria-controls="host-panel" title="Панель ведущего · H">Ведущий</button>
+        <button class="icon-button" id="host-logout" hidden>Выйти</button>
+        <button class="icon-button" id="pause" hidden>Пауза</button>
       </div>
     </header>
 
@@ -78,28 +79,26 @@
       </section>
 
       <section id="vote" class="vote-screen" aria-label="Прими решение" hidden>
-        <span class="eyebrow">ПЕРВЫЙ ВЫБОР</span><h2>Прими решение</h2><p>У каждой истории есть поворотный момент.</p><div class="vote-clock"><span id="vote-seconds">30</span><span class="vote-unit">СЕКУНД</span></div><div class="vote-track"><div id="vote-progress"></div></div><p id="vote-hint" class="vote-hint"></p>
+        <span class="eyebrow">ПЕРВЫЙ ВЫБОР</span><h2>Прими решение</h2>
+        <div class="vote-clock"><span id="vote-seconds">30</span><span class="vote-unit">СЕКУНД</span></div><div class="vote-track"><div id="vote-progress"></div></div>
+        <p id="vote-hint" class="vote-hint" role="status"></p>
+        <fieldset id="vote-controls" aria-label="Управление выбором" hidden>
+          <button class="secondary-button" data-choice="accept" aria-pressed="false">А · Пойти с Соней</button>
+          <button class="secondary-button" data-choice="decline" aria-pressed="false">Б · Отправиться домой</button>
+          <button id="vote-finish" class="secondary-button">Завершить отсчёт</button>
+        </fieldset>
+        <button id="vote-next" class="primary-button" hidden>Продолжить <kbd>ПРОБЕЛ</kbd></button>
       </section>
 
       <section id="ending" class="ending" hidden><div class="eyebrow">ПРОЛОГ ЗАВЕРШЁН</div><h2>Первый шаг<br><em>сделан.</em></h2><p>Впереди — «Ямолод», пять ключей<br>и одна очень любопытная дверь.</p><span class="ending-note">Продолжение истории — в сцене 04</span><button id="replay" class="primary-button">Пройти ещё раз</button></section>
       <div id="pause-overlay" class="pause-overlay" hidden><span>ПАУЗА</span><p>История подождёт.</p><button id="resume" class="secondary-button">Продолжить</button></div>
+      <p id="network-status" role="status" hidden></p>
       <div id="error" class="error-panel" role="alert" hidden><h2>Не удалось продолжить историю</h2><p id="error-message"></p><button id="error-reload" class="secondary-button">На старт</button></div>
     </main>
 
     <footer class="footer"><div><span class="chapter-index" id="chapter-index">00</span><span id="chapter-name">ДО НАЧАЛА ИСТОРИИ</span></div><span id="control-hint">Новая история ближе, чем кажется</span><span class="footer-mark">ДОСТУП ОТКРЫТ?</span></footer>
   </div>
 
-  <aside id="host-panel" class="host-panel" aria-label="Панель ведущего" hidden>
-    <header><div><span id="host-mode" class="eyebrow">ЛОКАЛЬНАЯ РЕПЕТИЦИЯ</span><h2>Панель ведущего</h2></div><button id="host-close" class="icon-button" aria-label="Закрыть панель">×</button></header>
-    <p id="host-status" role="status">История готова к запуску</p>
-    <button id="pause" class="secondary-button">Пауза</button>
-    <fieldset id="vote-controls" disabled><legend>Результат выбора</legend><p id="vote-instructions">Задайте ветку вместо голосования участников.</p><p id="vote-counts" hidden></p><button class="choice" data-choice="accept" aria-pressed="false"><b>А · Пойти с Соней</b><span>«Ладно, пошли. Но если там будут шишки и клей — я ухожу».</span></button><button class="choice" data-choice="decline" aria-pressed="false"><b>Б · Отправиться домой</b><span>«Нет, Сонь, сегодня без меня. Дома свои квесты».</span></button><button id="vote-finish" class="secondary-button">Завершить отсчёт</button></fieldset>
-    <p id="network-status" role="status" hidden></p>
-    <button id="host-logout" class="text-button" hidden>Выйти из аккаунта</button>
-    <button id="restart" class="text-button">Начать заново</button><p class="host-help"><kbd>H</kbd> — панель · <kbd>Пробел</kbd> — реплика<br>Панель видна на этом же экране.</p>
-  </aside>
-
-  <dialog id="restart-confirm" class="confirm-dialog"><h2>Начать историю заново?</h2><p>Текущее прохождение будет сброшено.</p><form method="dialog"><button class="secondary-button" value="cancel">Продолжить игру</button><button class="primary-button" value="restart">Начать заново</button></form></dialog>
   <noscript>Для игры необходим JavaScript. Включите его в настройках браузера.</noscript>
   <script type="module" src="src/main.js"></script>
 </body>

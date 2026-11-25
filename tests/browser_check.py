@@ -36,10 +36,10 @@ with sync_playwright() as p:
     print(f'Engine checks: {count} passed')
     page.goto(BASE)
     assert visible(page, '#host-login') and not visible(page, '#start-screen')
-    page.keyboard.press('h')
-    assert not visible(page, '#host-panel')
     page.locator('#rehearse').click()
     page.locator('#start').wait_for()
+    page.keyboard.press('h')
+    assert page.locator('#host-panel, #host-toggle').count() == 0
     assert not visible(page, '#room-info')
     page.wait_for_timeout(200)
     page.screenshot(path=str(ARTIFACTS/'00-start.png'))
@@ -55,7 +55,6 @@ with sync_playwright() as p:
     page.wait_for_timeout(200)
     page.screenshot(path=str(ARTIFACTS/'01-classroom.png'))
     # Pause preserves current dialogue and blocks advancement.
-    page.keyboard.press('KeyH')
     page.locator('#pause').click()
     text = page.locator('#dialogue-text').inner_text()
     page.locator('#stage').focus()
@@ -63,14 +62,12 @@ with sync_playwright() as p:
     page.wait_for_timeout(150)
     assert page.locator('#dialogue-text').inner_text() == text
     page.locator('#pause').click()
-    page.keyboard.press('KeyH')
     advance_to(page, '#poster')
     page.screenshot(path=str(ARTIFACTS/'02-invitation.png'))
     # Use normal speed for the vote; check paused timer, early finish, manual reveal.
     page.evaluate('window.testClockSpeed = 1')
     advance_to(page, '#vote')
     page.screenshot(path=str(ARTIFACTS/'02-vote.png'))
-    page.keyboard.press('KeyH')
     page.locator('#pause').click()
     remaining = page.locator('#vote-seconds').inner_text()
     page.wait_for_timeout(1100)
@@ -80,10 +77,6 @@ with sync_playwright() as p:
     page.locator('#vote-finish').click()
     page.wait_for_timeout(180)
     assert visible(page, '#vote') and not visible(page, '#dialogue')
-    page.locator('#stage').focus()
-    page.keyboard.press('Space')  # Host panel open: no advancement.
-    assert visible(page, '#vote')
-    page.keyboard.press('KeyH')
     page.locator('#stage').focus()
     page.keyboard.press('Space')
     page.evaluate('window.testClockSpeed = 40')
@@ -98,11 +91,8 @@ with sync_playwright() as p:
     page.wait_for_timeout(1000)
     assert visible(page, '#vote')
     assert page.locator('#vote-seconds').inner_text() == '00'
-    page.keyboard.press('KeyH')
     page.locator('[data-choice="decline"]').click()
-    page.keyboard.press('KeyH')
-    page.locator('#stage').focus()
-    page.keyboard.press('Space')
+    page.locator('#vote-next').click()
     advance_to(page, '#chat')
     page.wait_for_timeout(180)
     for _ in range(5):
@@ -112,16 +102,8 @@ with sync_playwright() as p:
     page.screenshot(path=str(ARTIFACTS/'03-chat.png'))
     advance_to(page, '#ending')
     print('Branch B, zero-selection wait, full chat, convergence: passed')
-    # Restart a scene in progress and confirm old timers do not advance the title.
+    # Replay returns from the ending to the start screen.
     page.locator('#replay').click()
-    page.locator('#start').click()
-    advance_to(page, '#dialogue')
-    page.keyboard.press('KeyH')
-    page.locator('#restart').click()
-    page.locator('#restart-confirm [value="cancel"]').click()
-    assert visible(page, '#dialogue')
-    page.locator('#restart').click()
-    page.locator('#restart-confirm [value="restart"]').click()
     page.wait_for_timeout(400)
     assert visible(page, '#start-screen') and not visible(page, '#dialogue')
     # Wide-screen and portrait layout stay within the viewport.
@@ -150,5 +132,5 @@ with sync_playwright() as p:
     page.wait_for_timeout(100)
     assert not page.evaluate('Boolean(document.fullscreenElement)')
     assert not errors, json.dumps(errors, ensure_ascii=False)
-    print('Restart/cancel, 1280/1920/390 layouts, mobile dialogue, fullscreen, mute, no JS errors: passed')
+    print('Replay, 1280/1920/390 layouts, mobile dialogue, fullscreen, mute, no JS errors: passed')
     browser.close()

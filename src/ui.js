@@ -8,11 +8,11 @@ export class GameUI {
   next(){if(this.clock.paused||performance.now()-this.lastAdvance<120)return;this.lastAdvance=performance.now();this.advanceAction?.();}
   reset(){
     this.advanceAction=null;this.lastAdvance=-Infinity;this.fadeValue=0;
-    for(const id of ['dialogue','poster','chat','vote','ending','pause-overlay','error','title-card','location-tag'])$(id).hidden=true;
+    for(const id of ['dialogue','poster','chat','vote','ending','pause-overlay','error','title-card','location-tag','network-status'])$(id).hidden=true;
     $('fade').style.opacity='0';
     $('chapter-index').textContent='00';$('chapter-name').textContent='ДО НАЧАЛА ИСТОРИИ';$('control-hint').textContent='Новая история ближе, чем кажется';
   }
-  sceneChanged(scene){$('chapter-index').textContent=scene.chapter;$('chapter-name').textContent=scene.title.toUpperCase();$('host-status').textContent=`Сцена ${scene.chapter} · ${scene.title}`;$('control-hint').textContent='ПРОБЕЛ — продолжить · H — ведущий';}
+  sceneChanged(scene){$('chapter-index').textContent=scene.chapter;$('chapter-name').textContent=scene.title.toUpperCase();$('control-hint').textContent='ПРОБЕЛ — продолжить';}
   location(id){$('location-tag').hidden=false;$('location-name').textContent=locations[id].name;}
   waitForAdvance(signal){
     checkAbort(signal);
@@ -55,22 +55,21 @@ export class GameUI {
   }
   voteChanged(voting){
     const active=['active','awaiting-choice'].includes(voting.status);
-    $('vote-controls').disabled=!active||this.clock.paused;
-    $('vote-finish').disabled=voting.status!=='active';
-    for(const button of document.querySelectorAll('[data-choice]')){
+    $('vote-controls').hidden=!active;
+    $('vote-controls').disabled=this.clock.paused;
+    $('vote-finish').hidden=voting.status!=='active';
+    $('vote-next').hidden=voting.status!=='ready';
+    $('vote-next').disabled=this.clock.paused;
+    for(const button of $('vote-controls').querySelectorAll('[data-choice]')){
       button.setAttribute('aria-pressed',String(button.dataset.choice===voting.choice));
-      button.disabled=!!voting.network&&voting.status!=='awaiting-choice';
+      button.hidden=!!voting.network&&voting.status!=='awaiting-choice';
     }
-    $('vote-counts').hidden=!voting.network;
-    if(voting.network)$('vote-counts').textContent=`Голосов: ${voting.counts.total} · А: ${voting.counts.accept} · Б: ${voting.counts.decline}`;
     $('vote-seconds').textContent=String(Math.ceil(voting.remaining/1000)).padStart(2,'0');
     $('vote-progress').style.width=`${voting.duration?voting.remaining/voting.duration*100:0}%`;
-    const hints={connecting:'Подключаем голосование…',active:'', 'awaiting-choice':'Ожидание продолжения',ready:'ПРОБЕЛ — продолжить историю',idle:''};
-    $('vote-hint').textContent=hints[voting.status];
-    if(voting.status==='awaiting-choice')$('host-status').textContent='Отсчёт завершён. Задайте ветку А или Б.';
-    if(voting.status==='active')$('host-status').textContent=`Выбор · ${Math.ceil(voting.remaining/1000)} сек.${voting.choice?' · ветка задана':''}`;
-    if(voting.status==='ready')$('host-status').textContent='Результат готов. Закройте панель и нажмите пробел.';
+    const hints={connecting:'Подключаем голосование…',active:voting.network?'Участники голосуют с телефонов.':'Выберите ветку А или Б.', 'awaiting-choice':'Отсчёт завершён. Выберите ветку А или Б.',ready:'Результат готов.',idle:''};
+    const hint=$('vote-hint');
+    if(hint.textContent!==hints[voting.status])hint.textContent=hints[voting.status];
   }
-  end(){$('ending').hidden=false;$('location-tag').hidden=true;$('control-hint').textContent='Обе дороги ведут к новому началу';$('host-status').textContent='Пролог завершён · продолжение в сцене 04';}
+  end(){$('ending').hidden=false;$('location-tag').hidden=true;$('control-hint').textContent='Обе дороги ведут к новому началу';}
   error(error){$('error').hidden=false;$('error-message').textContent=error.message;console.error(error);}
 }

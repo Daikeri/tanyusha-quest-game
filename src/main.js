@@ -8,7 +8,7 @@ import {setupHostSession} from './host-session.js';
 
 const clock=new GameClock(),world=new World($('world'),clock),audio=new AudioManager(),ui=new GameUI(clock);
 let voting=new LocalVoting();
-let started=false,frameTime=null,confirmWasPaused=false,hostFocus=null,resetting=false;
+let started=false,frameTime=null,resetting=false;
 let pauseQueue=Promise.resolve();
 const voteChanged=()=>ui.voteChanged(voting);
 voting.addEventListener('change',voteChanged);
@@ -19,7 +19,7 @@ function changeVoting(next){
 
 const runtime={
   sceneChanged(scene){ui.sceneChanged(scene);},
-  error(error){audio.reset();setPaused(false);ui.error(error);},
+  error(error){audio.reset();setPaused(false);$('pause').hidden=true;ui.error(error);},
   async execute(c,signal){
     switch(c.type){
       case 'location':world.setLocation(c.id,c.actors);ui.location(c.id);break;
@@ -43,7 +43,7 @@ const runtime={
           return result;
         }finally{$('vote').hidden=true;world.frozen=false;audio.duck(false);voting.cancel();}
       }
-      case 'end':ui.end();await online.close();online.refresh();break;
+      case 'end':$('pause').hidden=true;ui.end();await online.close();online.refresh();break;
       default:throw new Error(`Неизвестная команда: ${c.type}`);
     }
   },
@@ -61,13 +61,6 @@ function setPaused(value){
     await adapter.setPaused(value);if(adapter===voting)applyPause(value);
   }).catch(error=>{applyPause(true);online.report(error);});
 }
-function toggleHost(force){
-  if($('game-shell').hidden)return;
-  const open=force??$('host-panel').hidden;
-  if(open)hostFocus=document.activeElement;
-  $('host-panel').hidden=!open;$('host-toggle').setAttribute('aria-expanded',String(open));
-  if(open)$('host-close').focus();else (hostFocus?.isConnected?hostFocus:$('host-toggle')).focus();
-}
 async function reset(){
   if(resetting)return;
   if(!started){ui.reset();online.refresh();$('start').focus();return;}
@@ -76,29 +69,24 @@ async function reset(){
   try{
     await online.close();changeVoting(null);started=false;
     world.setLocation('city');ui.reset();
-    $('pause').disabled=true;$('restart').disabled=true;$('host-status').textContent='История готова к запуску';toggleHost(false);
+    $('pause').hidden=true;
     await online.prepare();
   }catch(error){online.report(error);ui.error(error);}
   finally{resetting=false;online.refresh();if(online.canStart())$('start').focus();}
 }
-function requestRestart(){
-  if(!started)return;
-  confirmWasPaused=clock.paused;setPaused(true);$('restart-confirm').returnValue='cancel';$('restart-confirm').showModal();
-}
 function start(){
   if(resetting||!online.canStart())return;
   try{validateScenes(scenes,resources);}catch(error){ui.error(error);return;}
-  started=true;$('pause').disabled=false;$('restart').disabled=false;
+  started=true;$('pause').hidden=false;
   online.refresh();
   $('stage').tabIndex=-1;$('stage').focus({preventScroll:true});
   void audio.unlock();void runner.start('scene00');
 }
 $('start').addEventListener('click',start);
 $('next-dialogue').addEventListener('click',()=>ui.next());$('next-chat').addEventListener('click',()=>ui.next());
-$('host-toggle').addEventListener('click',()=>toggleHost());$('host-close').addEventListener('click',()=>toggleHost(false));
 $('pause').addEventListener('click',()=>{if(started)setPaused(!clock.paused);});$('resume').addEventListener('click',()=>setPaused(false));
-$('restart').addEventListener('click',requestRestart);$('replay').addEventListener('click',reset);$('error-reload').addEventListener('click',reset);
-$('restart-confirm').addEventListener('close',()=>{if($('restart-confirm').returnValue==='restart')reset();else setPaused(confirmWasPaused);});
+$('replay').addEventListener('click',reset);$('error-reload').addEventListener('click',reset);
+$('vote-next').addEventListener('click',()=>ui.next());
 $('vote-finish').addEventListener('click',()=>{if(!clock.paused)Promise.resolve(voting.finish()).catch(online.report);});
 document.querySelectorAll('[data-choice]').forEach(button=>button.addEventListener('click',()=>{if(!clock.paused)Promise.resolve(voting.choose(button.dataset.choice)).catch(online.report);}));
 $('sound').addEventListener('click',()=>{
@@ -112,12 +100,8 @@ $('fullscreen').addEventListener('click',async()=>{
 document.addEventListener('fullscreenchange',()=>{$('fullscreen').setAttribute('aria-label',document.fullscreenElement?'Выйти из полного экрана':'Полный экран');});
 document.addEventListener('keydown',event=>{
   if($('game-shell').hidden)return;
-  if(event.repeat||event.ctrlKey||event.metaKey||event.altKey||$('restart-confirm').open)return;
+  if(event.repeat||event.ctrlKey||event.metaKey||event.altKey)return;
   if(['INPUT','TEXTAREA','SELECT'].includes(event.target.tagName)||event.target.isContentEditable)return;
-  if(event.code==='KeyH'){event.preventDefault();toggleHost();return;}
-  if(event.code==='Escape'&&!$('host-panel').hidden){toggleHost(false);return;}
-  // Host controls must never advance the story or leak buffered input into a later beat.
-  if(!$('host-panel').hidden)return;
   if(event.code==='Space'&&!event.target.closest('button,a')){
     event.preventDefault();if(!started)start();else ui.next();
   }
@@ -127,4 +111,4 @@ function frame(now){
   const delta=frameTime===null?0:Math.min(100,now-frameTime);frameTime=now;
   clock.tick(delta);if(!clock.paused)audio.tick(delta);world.render(delta);requestAnimationFrame(frame);
 }
-world.setLocation('city');$('pause').disabled=true;$('restart').disabled=true;requestAnimationFrame(frame);
+world.setLocation('city');requestAnimationFrame(frame);
