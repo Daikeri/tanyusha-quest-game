@@ -145,5 +145,6 @@ export function setupHostSession({isStarted, changeVoting, pauseGame}) {
   });
 
   render();
-  return {report, refresh: render, close, prepare: () => run(prepareRoom), canStart};
+  return {report, refresh: render, close, prepare: () => run(prepareRoom), canStart,
+    get roomSession() { return roomReady ? session : null; }};
 }

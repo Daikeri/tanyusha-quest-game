@@ -8,7 +8,7 @@ export class GameUI {
   next(){if(this.clock.paused||performance.now()-this.lastAdvance<120)return;this.lastAdvance=performance.now();this.advanceAction?.();}
   reset(){
     this.advanceAction=null;this.lastAdvance=-Infinity;this.fadeValue=0;
-    for(const id of ['dialogue','poster','chat','vote','ending','pause-overlay','error','title-card','location-tag','network-status'])$(id).hidden=true;
+    for(const id of ['dialogue','poster','chat','vote','ending','pause-overlay','error','title-card','location-tag','network-status','quest-doors','key-award','station-task'])$(id).hidden=true;
     $('fade').style.opacity='0';
     $('chapter-index').textContent='00';$('chapter-name').textContent='ДО НАЧАЛА ИСТОРИИ';$('control-hint').textContent='Новая история ближе, чем кажется';
   }
@@ -26,7 +26,7 @@ export class GameUI {
   dialogue(command,signal){
     checkAbort(signal);
     const c=characters[command.actor];$('dialogue').hidden=false;$('speaker').textContent=c.name;$('speaker').style.color=c.accent;
-    $('thought-label').hidden=!command.thought;$('dialogue-text').textContent='';$('advance-label').textContent='Раскрыть';drawPortrait($('portrait'),command.actor);
+    $('thought-label').hidden=!command.thought;$('dialogue-text').textContent='';$('advance-label').textContent='Раскрыть';drawPortrait($('portrait'),command.actor,command.emotion);
     return new Promise((resolve,reject)=>{
       const typing=new AbortController();let complete=false;
       const reveal=()=>{typing.abort();complete=true;$('dialogue-text').textContent=command.text;$('advance-label').textContent='Далее';};
@@ -70,6 +70,45 @@ export class GameUI {
     const hint=$('vote-hint');
     if(hint.textContent!==hints[voting.status])hint.textContent=hints[voting.status];
   }
-  end(){$('ending').hidden=false;$('location-tag').hidden=true;$('control-hint').textContent='Обе дороги ведут к новому началу';}
+  progress({keys,total}){
+    $('key-count').textContent=keys;
+    $('key-total').textContent=`/ ${total}`;
+    $('key-count').parentElement.setAttribute('aria-label',`Собрано ${keys} из ${total} ключей`);
+  }
+  doors(highlight,{total,keys}){
+    const panel=$('quest-doors');
+    panel.hidden=highlight==='hide';
+    if(panel.hidden)return;
+    if(highlight==='all'){
+      const doors=[];
+      for(let index=0;index<=total;index++){
+        const slot=document.createElement('div');
+        const secret=index===total;
+        slot.className=secret?'quest-slot secret':'quest-slot';
+        slot.style.setProperty('--door-index',index);
+        const door=document.createElement('span');
+        door.className='quest-door';
+        door.textContent=secret?'?':index+1;
+        slot.append(door);
+        if(!secret){
+          const key=document.createElement('span');
+          key.className='quest-socket';
+          key.textContent=index<keys?'⚿':'◇';
+          slot.append(key);
+        }
+        doors.push(slot);
+      }
+      panel.replaceChildren(...doors);
+    }
+    panel.dataset.highlight=highlight;
+  }
+  async keyAward(signal){
+    $('key-award').hidden=false;
+    try{await this.clock.wait(1600,signal);}finally{$('key-award').hidden=true;}
+  }
+  end(nextStation){
+    $('ending-station').textContent=`Следующая станция — «${nextStation}».`;
+    $('ending').hidden=false;$('location-tag').hidden=true;$('control-hint').textContent='Станция пройдена';
+  }
   error(error){$('error').hidden=false;$('error-message').textContent=error.message;console.error(error);}
 }

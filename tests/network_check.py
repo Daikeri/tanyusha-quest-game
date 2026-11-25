@@ -9,7 +9,7 @@ from pathlib import Path
 import json
 import urllib.request
 from urllib.parse import urlsplit
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import expect, sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = 'http://127.0.0.1:8000'
@@ -230,7 +230,50 @@ with sync_playwright() as p:
     denied(a, f'rooms/{room}/polls/{timed}/votes/participant-a', {'choice': 'accept', 'at': {'.sv': 'timestamp'}})
     host.evaluate('(id) => window.testSession.cancelPoll(id)', timed)
     a.wait_for_function("document.querySelector('#participant-title').textContent === 'Вы в игре'")
+    advance_to(host, '#quest-doors')
+    expect(a.locator('#participant-progress')).to_have_text('0/5')
+    assert 'МедиаЛаб' in a.locator('#participant-station').inner_text()
+    advance_to(host, '#station-task')
+    for phone in [a, b]:
+        expect(phone.locator('.video-editor legend')).to_contain_text('1 / 2')
+        assert phone.evaluate('document.documentElement.scrollWidth <= innerWidth')
+    denied(a, f'rooms/{room}/quest/keys', 99)
+    host.locator('#pause').click()
+    a.get_by_text('Ведущий поставил игру на паузу.').wait_for()
+    assert a.locator('.video-frames button').first.is_disabled()
+    seconds = admin(f'rooms/{room}/quest/activity/remaining')
+    assert 0 < seconds <= 90000
+    host.locator('#resume').click()
+    a.wait_for_function("!document.querySelector('.video-editor').disabled")
+    for frame in ['Никита дома', 'Вход в центр', 'Монтаж', 'Готовый ролик']:
+        a.get_by_role('button', name=frame, exact=True).click()
+    a.get_by_role('radio', name='«Я тебя могну» — видеоурок').check()
+    a.get_by_role('button', name='Проверить').click()
+    a.get_by_text('Кадры подходят. Попробуйте другой заголовок.').wait_for()
+    a.get_by_role('radio', name='Когда надоело скучать дома').check()
+    a.get_by_role('button', name='Проверить').click()
+    expect(a.locator('.video-editor legend')).to_contain_text('2 / 2')
+    assert '1. Никита дома' in a.locator('.video-timeline').inner_text()
+    assert '1 / 2' in b.locator('.video-editor legend').inner_text()
+    a.reload()
+    expect(a.locator('.video-editor legend')).to_contain_text('2 / 2')
+    a.get_by_role('button', name='Убрать · Никита дома').click()
+    a.get_by_role('button', name='Съёмка', exact=True).click()
+    a.get_by_role('button', name='Сдвинуть влево · Съёмка').click()
+    # Drag from third to second position. The keyboard/button controls provide an equivalent path.
+    a.get_by_text('3. Съёмка', exact=True).drag_to(a.get_by_text('2. Монтаж', exact=True))
+    assert '2. Съёмка' in a.locator('.video-timeline').inner_text()
+    a.get_by_role('radio', name='Как снять свой первый ролик в Ямолод').check()
+    a.get_by_role('button', name='Проверить').click()
+    a.get_by_role('heading', name='Монтаж готов').wait_for()
+    host.evaluate('window.testSession.offset += 95000')
+    b.get_by_text('Время вышло. Смотрите продолжение на общем экране.').wait_for()
+    assert not b.locator('.video-editor').is_visible()
+    host.locator('#station-task-next').click()
     advance_to(host, '#ending')
+    assert a.locator('#participant-progress').inner_text() == '1/5'
+    assert b.locator('#participant-progress').inner_text() == '1/5'
+    print('Shared task clock, individual stages, draft restore, drag, timeout and team key: passed', flush=True)
     host.locator('#replay').click()
     host.locator('#start-screen #room-qr svg').wait_for()
     new_room = host.evaluate('window.testSession.room')

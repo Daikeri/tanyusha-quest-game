@@ -13,6 +13,9 @@
         "activePoll": {
           ".read": "auth != null && root.child('rooms').child($room).child('members').child(auth.uid).exists()"
         },
+        "quest": {
+          ".read": "auth != null && root.child('rooms').child($room).child('members').child(auth.uid).exists()"
+        },
         "members": {
           "$uid": {
             ".read": "auth != null && auth.uid === $uid",

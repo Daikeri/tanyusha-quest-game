@@ -24,6 +24,23 @@
 @media(max-width:550px) and (orientation:portrait){.chat{left:5%;width:90%}.bubble{font-size:1rem}#dialogue-text{font-size:1rem}.speaker-line h2{font-size:1rem}.tools .icon-button{font-size:.75rem}.location-tag{font-size:.75rem}}
 @media(prefers-reduced-motion:reduce){button{transition:none}}
 .vote-screen{padding:12px;overflow:auto;justify-content:safe center;text-align:center}
+.quest-mode{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin-top:12px;color:var(--muted);font-size:.8rem}
+.quest-mode select{background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:7px;font:inherit}
+.quest-doors{position:absolute;z-index:7;inset:14% 8% auto;display:flex;justify-content:center;gap:clamp(4px,1.7cqw,20px);padding:2%;border:1px solid var(--border);border-radius:6px;background:#171a29ed}
+.quest-slot{width:min(13cqw,104px);min-width:0;display:grid;justify-items:center;gap:clamp(4px,1cqw,12px);color:var(--accent)}
+.quest-door{width:100%;aspect-ratio:2/3;display:grid;place-items:center;border:clamp(2px,.5cqw,6px) solid #8171a4;border-bottom-width:2px;background:#332849;font-size:clamp(1rem,3.5cqw,3rem)}
+.quest-socket{width:66%;text-align:center;border:1px solid #a68ac26b;border-radius:5px;background:#231f31;font-size:clamp(.8rem,2cqw,1.6rem)}
+.quest-slot.secret .quest-door{color:#ead0a2;background:#241d34;border-color:#66577e;box-shadow:0 0 12px #af91ed46}
+.quest-doors[data-highlight=all] .quest-slot:not(.secret){animation:door-glow .65s ease both;animation-delay:calc(var(--door-index)*.16s)}
+.quest-doors[data-highlight=secret] .secret{animation:door-glow .85s ease;color:var(--orange)}
+.award-icon{display:grid;place-items:center;width:clamp(64px,16cqw,160px);aspect-ratio:1;border:2px solid #efb07884;border-radius:50%;font-size:clamp(2.6rem,10cqw,7rem);color:var(--orange);background:#2c213e;box-shadow:0 0 42px #efb0784d;animation:award-in .55s ease-out both}
+@keyframes door-glow{50%{filter:brightness(1.8) drop-shadow(0 0 10px #c4afff)}}
+@keyframes award-in{from{opacity:0;transform:scale(.58) translateY(18px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.station-task{justify-content:safe center;gap:8px}
+.station-task:has(#rehearsal-task:not([hidden])){justify-content:flex-start}
+#station-task-timer,#participant-task-timer{font-variant-numeric:tabular-nums;font-size:clamp(1.25rem,4cqw,3rem);color:var(--accent)}
+#rehearsal-task{width:min(100%,540px);text-align:left}
+@media(prefers-reduced-motion:reduce){.quest-slot,.award-icon{animation:none!important}}
 #vote-controls{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;border:0;margin:0;padding:0;min-width:0;max-width:100%}
 #vote-controls button[aria-pressed=true]{border-color:var(--accent);background:#b89af71a}
 #network-status{position:absolute;z-index:13;bottom:3%;left:4%;right:4%;margin:0;padding:8px 12px;background:var(--panel);border:1px solid var(--border);text-align:center;font-size:.8rem}

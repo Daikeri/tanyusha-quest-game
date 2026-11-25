@@ -14,13 +14,21 @@
     <p class="eyebrow">Я.МОЛОД · ТВОЙ ВЫБОР</p>
     <h1 id="participant-title">Подключаемся к игре</h1>
     <p id="connection-status" role="status">Устанавливаем связь…</p>
+    <section id="participant-quest" aria-label="Прогресс команды" hidden>
+      <p class="eyebrow">Прогресс команды</p><strong id="participant-progress"></strong>
+      <p id="participant-station"></p>
+    </section>
     <section id="participant-poll" hidden>
       <p id="participant-timer" class="participant-timer"></p>
       <div id="participant-options" class="participant-options"></div>
     </section>
+    <section id="participant-task" aria-label="Мини-игра" hidden>
+      <output id="participant-task-timer" aria-label="Оставшееся время"></output>
+      <div id="participant-editor"></div>
+    </section>
     <p id="participant-status" role="status" aria-live="polite"></p>
     <button id="join-retry" class="secondary-button" hidden>Попробовать снова</button>
-    <p class="participant-note">Смотрите историю на общем экране.<br>Вопросы появятся здесь автоматически.</p>
+    <p class="participant-note">Смотрите историю на общем экране.<br>Вопросы и задания появятся здесь автоматически.</p>
   </main>
   <noscript>Для участия включите JavaScript.</noscript>
   <script type="module" src="src/participant.js"></script>

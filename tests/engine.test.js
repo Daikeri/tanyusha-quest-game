@@ -56,12 +56,15 @@ test('Перезапуск не допускает события прежней
   const runner=new SceneRunner({old:{id:'old',commands:[{type:'wait',duration:1000},{type:'sound',id:'old'}]},fresh:{id:'fresh',commands:[{type:'sound',id:'fresh'}]}},{sceneChanged(){},error(e){throw e;},async execute(c,s){if(c.type==='wait')await clock.wait(c.duration,s);else events.push(c.id);}});
   const old=runner.start('old');clock.tick(100);await runner.start('fresh');clock.tick(2000);await old;assert(events.join()==='fresh');assert(clock.jobs.size===0);
 });
-for(const choice of ['accept','decline'])test(`Полный маршрут ${choice} сходится в scene04 с одной выбранной репликой`,async()=>{
+for(const [choice,total,next] of [['accept',5,'scene07'],['decline',3,'scene09']])test(`Маршрут ${choice} сходится в scene04 и выдаёт первый ключ перед ${next}`,async()=>{
   const visited=[],commands=[],errors=[];
   const runner=new SceneRunner(scenes,{sceneChanged(scene){visited.push(scene.id);},error(e){errors.push(e);},async execute(c){commands.push(c);if(c.type==='vote')return choice;}});
-  await runner.start('scene00');assert(!errors.length);assert(visited.join()===`scene00,scene01,scene02,scene03${choice==='accept'?'a':'b'},scene04`);
+  await runner.start('scene00',total);assert(!errors.length);assert(visited.join()===`scene00,scene01,scene02,scene03${choice==='accept'?'a':'b'},scene04,scene05,scene06,${next}`);
   const selected=choice==='accept'?'Ладно, пошли.':'Не, Сонь, давай без меня.';
-  assert(commands.filter(c=>c.type==='dialogue'&&c.text.startsWith(selected)).length===1);assert(runner.state.keys===0);assert(runner.state.flags.invitation===choice);assert(commands.at(-1).type==='end');
+  assert(commands.filter(c=>c.type==='dialogue'&&c.text.startsWith(selected)).length===1);
+  assert(commands.find(c=>c.type==='activity').duration===90000);
+  assert(runner.state.keys===1&&runner.state.total===total);
+  assert(runner.state.flags.invitation===choice);assert(commands.at(-1).type==='end');
   if(choice==='decline')assert(commands.find(c=>c.type==='chat').messages.length===6);
 });
 

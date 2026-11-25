@@ -127,4 +127,25 @@ export class FirebaseSession extends EventTarget {
     this.requireOnline();
     await this.d.set(this.d.ref(this.db, this.path(`polls/${id}/votes/${this.uid}`)), {choice, at: this.d.serverTimestamp()});
   }
+  async publishProgress({keys, total, nextStation}) {
+    this.requireOnline();
+    await this.d.update(this.d.ref(this.db, this.path('quest')), {keys, total, nextStation});
+  }
+  async clearPoll() {
+    this.requireOnline();
+    await this.d.set(this.d.ref(this.db, this.path('activePoll')), null);
+  }
+  async writeActivity(activity) {
+    this.requireOnline();
+    await this.d.set(this.d.ref(this.db, this.path('quest/activity')), activity);
+  }
+  async pauseActivity(id, paused) {
+    this.requireOnline();
+    const result = await this.d.runTransaction(this.d.ref(this.db, this.path('quest/activity')), state => {
+      if (state === null) return null;
+      if (state.id !== id) return;
+      return pausePoll(state, paused, this.now());
+    }, {applyLocally: false});
+    return result.snapshot.val();
+  }
 }

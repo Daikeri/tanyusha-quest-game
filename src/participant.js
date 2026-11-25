@@ -1,18 +1,75 @@
 import {FirebaseSession, networkMessage} from './firebase-session.js';
 import {validRoom} from './poll.js';
+import {activities} from './resources.js';
+import {activityTime, mountViralVideo} from './viral-video.js';
 
 const $ = id => document.getElementById(id);
 const room = new URL(location.href).searchParams.get('room');
 let session, pollId, state, ownVote, pending = false, closed = false, failed = false;
 let offState, offVote, offMeta, offActive, timer;
+let offQuest, quest, editor, editorId;
 let notice = '';
+
+function setText(id, value) {
+  const node = $(id);
+  if (node.textContent !== value) node.textContent = value;
+}
+
+function renderQuest() {
+  const activity = quest?.activity;
+  const details = activities[activity?.id];
+  const section = $('participant-task');
+  section.hidden = closed || !details;
+  if (section.hidden && editor) {
+    editor = null;
+    editorId = null;
+    $('participant-editor').replaceChildren();
+  }
+  $('participant-quest').hidden = !quest?.total || !section.hidden;
+  if (quest?.total) {
+    setText('participant-progress', `${quest.keys}/${quest.total}`);
+    setText('participant-station', quest.nextStation ? `Следующая станция — «${quest.nextStation}»` : '');
+  }
+  if (section.hidden) return false;
+
+  const remaining = activity.status === 'paused' ? activity.remaining
+    : activity.status === 'open' ? Math.max(0, activity.deadline - session.now()) : 0;
+  const expired = activity.status === 'finished' || (activity.status === 'open' && remaining === 0);
+  if (editorId !== activity.id && !expired) {
+    editorId = activity.id;
+    editor = mountViralVideo($('participant-editor'), {
+      storageKey: `yamolod:${room}:${activity.id}`,
+      canEdit: () => {
+        const current = quest?.activity;
+        return !closed && session.connected && current?.status === 'open' && current.deadline > session.now();
+      },
+    });
+  }
+  if (editor?.complete) {
+    section.hidden = true;
+    $('participant-quest').hidden = !quest?.total;
+    setText('participant-title', 'Монтаж готов');
+    setText('participant-status', 'Оба этапа пройдены. Ждите продолжения на общем экране.');
+    return true;
+  }
+  editor?.setEditable(activity.status === 'open' && !expired && session.connected);
+  setText('participant-title', details.title);
+  setText('participant-task-timer', activity.status === 'paused' ? 'Пауза' : activityTime(remaining));
+  $('participant-editor').hidden = expired;
+  setText('participant-status', expired ? 'Время вышло. Смотрите продолжение на общем экране.'
+    : activity.status === 'paused' ? 'Ведущий поставил игру на паузу.' : '');
+  return true;
+}
+
 function render() {
-  $('connection-status').textContent = session?.connected ? 'Вы подключены к игре' : 'Нет связи. Подключаемся снова…';
+  setText('connection-status', session?.connected ? 'Вы подключены к игре' : 'Нет связи. Подключаемся снова…');
   if (failed) return;
-  $('participant-poll').hidden = closed || !state || state.status === 'cancelled';
-  if (closed) { $('participant-title').textContent = 'Игра завершена'; $('participant-status').textContent = 'Спасибо за участие! Для новой игры отсканируйте новый QR.'; return; }
-  if (!state || state.status === 'cancelled') {
-    $('participant-title').textContent = 'Вы в игре'; $('participant-status').textContent = 'Ждём следующего вопроса от ведущего.'; return;
+  const inTask = renderQuest();
+  $('participant-poll').hidden = closed || inTask || !state || state.status === 'cancelled';
+  if (closed) { setText('participant-title', 'Игра завершена'); setText('participant-status', 'Спасибо за участие! Для новой игры отсканируйте новый QR.'); return; }
+  if (inTask) return;
+  if ($('participant-poll').hidden) {
+    setText('participant-title', 'Вы в игре'); setText('participant-status', 'Ждите продолжения на общем экране.'); return;
   }
   $('participant-title').textContent = state.question;
   const remaining = state.status === 'paused' ? state.remaining : Math.max(0, state.deadline - session.now());
@@ -34,6 +91,7 @@ function showError(error) {
   failed = true;
   $('participant-status').textContent = networkMessage(error);
   $('participant-poll').hidden = true; $('join-retry').hidden = false;
+  $('participant-task').hidden = true;
 }
 async function answer(choice) {
   if (pending || !session?.connected) return;
@@ -79,10 +137,11 @@ async function connect() {
       session.addEventListener('connection', render);
     }
     await session.join(room);
-    offMeta?.(); offActive?.(); offState?.(); offVote?.(); clearInterval(timer);
-    pollId = undefined; state = null; closed = false;
+    offMeta?.(); offActive?.(); offState?.(); offVote?.(); offQuest?.(); clearInterval(timer);
+    pollId = undefined; state = null; quest = null; closed = false;
     offMeta = session.watch(session.path('meta'), meta => { closed = !meta || meta.status === 'closed'; render(); }, showError);
     offActive = session.watch(session.path('activePoll'), watchPoll, showError);
+    offQuest = session.watch(session.path('quest'), value => { quest = value; render(); }, showError);
     timer = setInterval(render, 250); render();
   } catch (error) { showError(error); }
 }

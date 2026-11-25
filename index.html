@@ -28,7 +28,7 @@
     <header class="topbar">
       <a class="brand" href="./" aria-label="Я.МОЛОД — на старт"><span class="brand-symbol" aria-hidden="true">я</span> Я.МОЛОД<span class="brand-caption">ИНТЕРАКТИВНАЯ НОВЕЛЛА</span></a>
       <div class="tools">
-        <span class="key-count" aria-label="Собрано 0 из 5 ключей"><span aria-hidden="true">⚿</span> <b id="key-count">0</b><span>/ 5</span></span>
+        <span class="key-count" aria-label="Собрано 0 из 5 ключей"><span aria-hidden="true">⚿</span> <b id="key-count">0</b><span id="key-total">/ 5</span></span>
         <button class="icon-button" id="sound" aria-label="Отключить звук" aria-pressed="false" title="Звук">Звук вкл.</button>
         <button class="icon-button" id="fullscreen" title="Полный экран" aria-label="Полный экран">⛶</button>
         <button class="icon-button" id="host-logout" hidden>Выйти</button>
@@ -47,7 +47,9 @@
           <h1>ДОСТУП<br><span>ОТКРЫТ?</span></h1>
           <p class="intro">Иногда новый уровень<br>начинается за пределами комнаты.</p>
           <button id="start" class="primary-button" disabled>Начать историю <span aria-hidden="true">↵</span></button>
-          <div class="start-footnote">Пять ключей. Шесть дверей. Твой выбор.</div>
+          <label class="quest-mode">Версия квеста
+            <select id="quest-mode"><option value="5">Полная · 5 станций</option><option value="3">Сокращённая · 3 станции</option></select>
+          </label>
         </div>
         <section id="room-info" aria-labelledby="room-title" hidden>
           <h2 id="room-title">Подключиться к игре</h2>
@@ -56,7 +58,6 @@
           <button id="copy-room" class="secondary-button">Скопировать ссылку</button>
           <p id="room-status" role="status"></p>
         </section>
-        <div class="edition">Я.МОЛОД <span> / </span> ПРОЛОГ</div>
       </section>
 
       <div id="fade" class="fade" aria-hidden="true"></div>
@@ -69,7 +70,17 @@
       </section>
 
       <section id="poster" class="poster" hidden aria-label="Афиша квеста">
-        <div class="eyebrow">МОЛОДЁЖНЫЙ ЦЕНТР</div><strong>Я.МОЛОД</strong><div class="poster-door" aria-hidden="true">?</div><h2>ПЯТЬ КЛЮЧЕЙ.<br>ШЕСТАЯ ДВЕРЬ.</h2><p>Пройди квест. Узнай, что внутри.</p><span class="poster-stamp">СЕГОДНЯ / ВХОД СВОБОДНЫЙ</span>
+        <div class="eyebrow">МОЛОДЁЖНЫЙ ЦЕНТР</div><strong>Я.МОЛОД</strong><div class="poster-door" aria-hidden="true">?</div><h2 id="poster-quest">ПЯТЬ КЛЮЧЕЙ.<br>ШЕСТАЯ ДВЕРЬ.</h2><p>Пройди квест. Узнай, что внутри.</p><span class="poster-stamp">СЕГОДНЯ / ВХОД СВОБОДНЫЙ</span>
+      </section>
+      <section id="quest-doors" class="quest-doors" aria-label="Двери и ячейки для ключей" hidden></section>
+      <section id="key-award" class="title-card" role="status" hidden>
+        <span class="award-icon" aria-hidden="true">⚿</span><h2>Первый ключ получен</h2>
+      </section>
+      <section id="station-task" class="vote-screen station-task" aria-labelledby="station-task-title" hidden>
+        <h2 id="station-task-title"></h2><p id="station-task-description"></p>
+        <output id="station-task-timer" aria-label="Оставшееся время"></output>
+        <div id="rehearsal-task" hidden></div>
+        <button id="station-task-next" class="primary-button" hidden>Продолжить <kbd>ПРОБЕЛ</kbd></button>
       </section>
 
       <section id="chat" class="chat" aria-label="Переписка с Соней" hidden>
@@ -90,7 +101,7 @@
         <button id="vote-next" class="primary-button" hidden>Продолжить <kbd>ПРОБЕЛ</kbd></button>
       </section>
 
-      <section id="ending" class="ending" hidden><div class="eyebrow">ПРОЛОГ ЗАВЕРШЁН</div><h2>Первый шаг<br><em>сделан.</em></h2><p>Впереди — «Ямолод», пять ключей<br>и одна очень любопытная дверь.</p><span class="ending-note">Продолжение истории — в сцене 04</span><button id="replay" class="primary-button">Пройти ещё раз</button></section>
+      <section id="ending" class="ending" hidden><div class="eyebrow">МЕДИАЛАБ ПРОЙДЕН</div><h2>Первый ключ<br><em>у вас.</em></h2><p id="ending-station"></p><button id="replay" class="primary-button">Пройти ещё раз</button></section>
       <div id="pause-overlay" class="pause-overlay" hidden><span>ПАУЗА</span><p>История подождёт.</p><button id="resume" class="secondary-button">Продолжить</button></div>
       <p id="network-status" role="status" hidden></p>
       <div id="error" class="error-panel" role="alert" hidden><h2>Не удалось продолжить историю</h2><p id="error-message"></p><button id="error-reload" class="secondary-button">На старт</button></div>

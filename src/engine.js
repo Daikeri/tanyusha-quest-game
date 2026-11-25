@@ -1,7 +1,7 @@
 /** @typedef {'accept'|'decline'} Choice */
-/** @typedef {{sceneId:string, step:number, flags:Record<string,string>, keys:number}} GameState */
+/** @typedef {{sceneId:string, step:number, flags:Record<string,string>, keys:number, total:number, nextStation:string}} GameState */
 /**
- * @typedef {{type:'dialogue', actor:string, text:string, thought?:boolean}
+ * @typedef {{type:'dialogue', actor:string, text:string, shortText?:string, thought?:boolean, emotion?:string}
  * | {type:'move', actor:string, path:number[][], duration:number}
  * | {type:'pose', actor:string, pose:string}
  * | {type:'location', id:string, actors:Record<string,{x:number,y:number,pose?:string,direction?:number}>}
@@ -13,9 +13,14 @@
  * | {type:'title', kicker:string, text:string, duration:number}
  * | {type:'poster', visible:boolean}
  * | {type:'chat', messages:{from:string,text:string,attachment?:string}[]}
+ * | {type:'doors', highlight:'all'|'secret'|'hide'}
+ * | {type:'station', name:string}
+ * | {type:'participantWait'}
+ * | {type:'activity', id:string, duration:number}
+ * | {type:'key', nextStation:string, shortNextStation?:string}
  * | {type:'vote', id:string, duration:number, question?:string, options?:Record<Choice,string>}
  * | {type:'branch', flag:string, targets:Record<string,string>}
- * | {type:'goto', target:string}
+ * | {type:'goto', target:string, shortTarget?:string}
  * | {type:'parallel', commands:Command[]}
  * | {type:'end'}} Command
  */
@@ -96,8 +101,8 @@ export class LocalVoting extends EventTarget {
   }
 }
 
-const TYPES = new Set(['dialogue','move','pose','location','camera','fade','wait','sound','music','title','poster','chat','vote','branch','goto','parallel','end']);
-const BLOCKING = new Set(['dialogue','title','chat','vote','branch','goto','location','end']);
+const TYPES = new Set(['dialogue','move','pose','location','camera','fade','wait','sound','music','title','poster','chat','doors','station','participantWait','activity','key','vote','branch','goto','parallel','end']);
+const BLOCKING = new Set(['dialogue','title','chat','doors','station','participantWait','activity','key','vote','branch','goto','location','end']);
 /** Validate references before starting, instead of breaking halfway through an event. */
 export function validateScenes(scenes, resources) {
   const problems = [];
@@ -114,7 +119,14 @@ export function validateScenes(scenes, resources) {
     if (command.type === 'pose' && !resources.poses.includes(command.pose)) problems.push(`Неизвестная поза: ${command.pose}`);
     if (command.type === 'sound') exists(resources.sounds, command.id, 'Звук не найден');
     if (command.type === 'music') exists(resources.music, command.id, 'Музыка не найдена');
-    if (command.type === 'goto') exists(scenes, command.target, 'Сцена не найдена');
+    if (command.type === 'goto') {
+      exists(scenes, command.target, 'Сцена не найдена');
+      if (command.shortTarget) exists(scenes, command.shortTarget, 'Сцена не найдена');
+    }
+    if (command.type === 'activity') {
+      exists(resources.activities, command.id, 'Задание не найдено');
+      if (!(command.duration > 0)) problems.push('У задания должен быть положительный лимит времени');
+    }
     if (command.type === 'branch') for (const target of Object.values(command.targets)) exists(scenes, target, 'Ветка не найдена');
     if (command.type === 'move' && (!command.path.length || command.path.some(p => p.length !== 2 || p.some(n => !Number.isFinite(n))))) problems.push('Некорректный маршрут');
     if (command.type === 'chat') for (const message of command.messages) {
@@ -134,15 +146,15 @@ export function validateScenes(scenes, resources) {
 export class SceneRunner {
   constructor(scenes, runtime) {
     this.scenes = scenes; this.runtime = runtime; this.controller = null;
-    this.state = { sceneId: '', step: 0, flags: {}, keys: 0 };
+    this.state = { sceneId: '', step: 0, flags: {}, keys: 0, total: 5, nextStation: '' };
     this.running = false;
   }
   stop() { this.controller?.abort(); this.controller = null; this.running = false; }
-  async start(id) {
+  async start(id, total = 5) {
     this.stop();
     const controller = new AbortController(); this.controller = controller;
     const signal = controller.signal;
-    this.state = { sceneId: id, step: 0, flags: {}, keys: 0 };
+    this.state = { sceneId: id, step: 0, flags: {}, keys: 0, total, nextStation: '' };
     this.running = true;
     try {
       let target = id;
@@ -157,7 +169,7 @@ export class SceneRunner {
           checkAbort(signal);
           this.state.step = i;
           const command = scene.commands[i];
-          if (command.type === 'goto') { next = command.target; break; }
+          if (command.type === 'goto') { next = total === 3 && command.shortTarget ? command.shortTarget : command.target; break; }
           if (command.type === 'branch') {
             next = command.targets[this.state.flags[command.flag]];
             if (!next) throw new Error(`Нет ветки для ${command.flag}`);
@@ -183,7 +195,12 @@ export class SceneRunner {
       checkAbort(signal);
       this.state.flags[command.id] = result;
     } else {
-      await this.runtime.execute(command, signal);
+      if (command.type === 'station') this.state.nextStation = command.name;
+      if (command.type === 'key') {
+        this.state.keys++;
+        this.state.nextStation = this.state.total === 3 && command.shortNextStation ? command.shortNextStation : command.nextStation;
+      }
+      await this.runtime.execute(command, signal, this.state);
     }
   }
 }

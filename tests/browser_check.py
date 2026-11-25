@@ -80,11 +80,19 @@ with sync_playwright() as p:
     page.locator('#stage').focus()
     page.keyboard.press('Space')
     page.evaluate('window.testClockSpeed = 40')
+    advance_to(page, '#quest-doors')
+    assert page.locator('.quest-slot').count() == 6
+    page.screenshot(path=str(ARTIFACTS/'05-doors.png'))
+    advance_to(page, '#station-task')
+    assert visible(page, '#rehearsal-task')
+    page.locator('#station-task-next').click(timeout=8000)
     advance_to(page, '#ending')
-    assert page.locator('#chapter-index').inner_text() == '04'
-    page.screenshot(path=str(ARTIFACTS/'03-ending.png'))
+    assert page.locator('#chapter-index').inner_text() == '07'
+    assert page.locator('#key-count').inner_text() == '1'
+    page.screenshot(path=str(ARTIFACTS/'06-ending.png'))
     print('Branch A, paused timer, manual vote reveal: passed')
     page.locator('#replay').click()
+    page.locator('#quest-mode').select_option('3')
     page.locator('#start').click()
     advance_to(page, '#vote')
     # Let the timer expire without a selection.
@@ -100,7 +108,14 @@ with sync_playwright() as p:
         page.wait_for_timeout(155)
     assert page.locator('.bubble').count() == 6
     page.screenshot(path=str(ARTIFACTS/'03-chat.png'))
+    advance_to(page, '#quest-doors')
+    assert page.locator('.quest-slot').count() == 4
+    advance_to(page, '#station-task')
+    page.locator('#station-task-next').click(timeout=8000)
     advance_to(page, '#ending')
+    assert page.locator('#chapter-index').inner_text() == '09'
+    assert page.locator('#key-count').inner_text() == '1'
+    assert page.locator('#key-total').inner_text() == '/ 3'
     print('Branch B, zero-selection wait, full chat, convergence: passed')
     # Replay returns from the ending to the start screen.
     page.locator('#replay').click()

@@ -5,7 +5,7 @@ const R = (ctx,color,x,y,w,h) => {ctx.fillStyle=color;ctx.fillRect(Math.round(x)
 function label(ctx,text,x,y,size=12,color='#ebe3d7',align='left') { ctx.fillStyle=color;ctx.font=`bold ${size}px monospace`;ctx.textAlign=align;ctx.fillText(text,Math.round(x),Math.round(y));ctx.textAlign='left'; }
 
 /** Pixel sprite: one shared drawing function for actors and portraits. */
-export function drawCharacter(ctx,id,x,y,{pose='idle',direction=1,time=0,scale=2}={}) {
+export function drawCharacter(ctx,id,x,y,{pose='idle',direction=1,time=0,scale=2,emotion}={}) {
   const c=characters[id];
   if (!c) throw new Error(`Нет спрайта: ${id}`);
   ctx.save();ctx.translate(Math.round(x),Math.round(y));ctx.scale(scale,scale);
@@ -29,18 +29,27 @@ export function drawCharacter(ctx,id,x,y,{pose='idle',direction=1,time=0,scale=2
   R(ctx,c.hair,-8,-32+bodyOffset,16,14);R(ctx,c.skin,-6,-28+bodyOffset,13,10);
   R(ctx,'#cb8b74',6,-25+bodyOffset,2,5);R(ctx,c.hair,-8,-32+bodyOffset,16,6);
   R(ctx,c.hair,-8,-27+bodyOffset,3,8);R(ctx,c.hair,-4,-28+bodyOffset,6,3);
-  if(id==='sonya'||id==='student2'){R(ctx,c.hair,-9,-28+bodyOffset,3,16);R(ctx,c.hair,7,-26+bodyOffset,3,14);R(ctx,'#e9be7e',-9,-15+bodyOffset,3,3);}
+  if(['sonya','student2','lera'].includes(id)){R(ctx,c.hair,-9,-28+bodyOffset,3,16);R(ctx,c.hair,7,-26+bodyOffset,3,14);R(ctx,c.accent,-9,-15+bodyOffset,3,3);}
   R(ctx,'#242636',direction<0?-5:0,-24+bodyOffset,2,2);R(ctx,'#242636',direction<0?0:5,-24+bodyOffset,2,2);
   R(ctx,'#b8776f',1,-20+bodyOffset,3,1);
+  if(emotion==='happy'){R(ctx,'#894e57',0,-21,5,2);R(ctx,'#f5d6bb',1,-21,3,1);}
+  if(emotion==='curious')R(ctx,c.hair,3,-27,4,1);
+  if(emotion==='shy'){R(ctx,'#cb8b74',-5,-22,3,2);R(ctx,'#cb8b74',5,-22,2,2);}
   if(pose==='phone'){R(ctx,c.skin,6,-13,4,3);R(ctx,'#282d48',7,-18,5,8);R(ctx,'#9ed7d6',8,-17,3,5);}
   if(pose==='pack'){R(ctx,'#3b4057',7,-17,9,14);R(ctx,'#757395',8,-16,7,9);R(ctx,'#d9bd81',11,-12,2,3);}
+  if(pose==='wave'){R(ctx,c.shirt,-13,-23,5,10);R(ctx,c.skin,-14,-27+Math.round(Math.sin(time/140)*2),4,5);}
+  if(pose==='tablet'){
+    R(ctx,'#292e44',4,-17,12,9);R(ctx,'#9acaca',5,-16,10,7);
+    R(ctx,'#635583',9,-15,3,4);R(ctx,'#f4c59d',9,-15,3,2);
+  }
+  if(pose==='notice'){R(ctx,'#f1c68a',-1,-45,3,7);R(ctx,'#f1c68a',-1,-36,3,3);}
   ctx.restore();
 }
-export function drawPortrait(canvas,id) {
+export function drawPortrait(canvas,id,emotion) {
   const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;
   ctx.clearRect(0,0,96,96);R(ctx,'#353149',0,0,96,96);R(ctx,'#423b58',8,8,80,80);
   R(ctx,characters[id].accent,8,81,80,7);
-  drawCharacter(ctx,id,48,147,{scale:4});
+  drawCharacter(ctx,id,48,147,{scale:4,emotion});
 }
 export function drawObjects(canvas) {
   const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;
@@ -97,6 +106,10 @@ export class World {
     if(this.location==='city'||this.location==='street')this.drawCity(this.location==='street');
     if(this.location==='classroom')this.drawClassroom();
     if(this.location==='bedroom')this.drawBedroom();
+    if(this.location==='hall'||this.location==='media'){
+      this.drawCentre(this.location==='media');
+      this.drawActors();
+    }
     if(this.location==='city'||this.location==='street')this.drawActors();
     ctx.restore();
   }
@@ -156,6 +169,43 @@ export class World {
     for(let yy=y;yy<y+h;yy+=34){R(c,'#00000010',x,yy,w,2);for(let xx=x+(Math.floor(yy/34)%2)*45;xx<x+w;xx+=90){R(c,'#0000000c',xx,yy,2,34);R(c,'#ffffff05',xx+8,yy+9,45,2);}}
   }
   plant(x,y) {const c=this.ctx;R(c,'#1a283c33',x-14,y,38,7);R(c,'#ae7b6b',x-10,y-17,24,22);R(c,'#d0977b',x-14,y-20,32,8);R(c,'#4e796b',x-3,y-53,6,34);R(c,'#618b75',x-18,y-46,18,9);R(c,'#618b75',x+1,y-54,19,9);R(c,'#3e695c',x+1,y-36,18,8);}
+  drawCentre(studio) {
+    const c=this.ctx;
+    R(c,'#21273c',-500,-400,2000,1300);
+    this.floor(32,121,896,420,studio?'#6b6f84':'#84838e');
+    R(c,studio?'#475471':'#6a627d',32,24,896,98);
+    R(c,'#afa3be',32,24,896,8);
+    R(c,'#42485f',32,111,896,13);
+    label(c,studio?'МЕДИАЛАБ':'Я.МОЛОД',480,79,27,'#eee2fb','center');
+    const posters=studio?['СЪЁМКА','МОНТАЖ','ПРЕМЬЕРА']:['Я','ПРОЕКТЫ','СОБЫТИЯ'];
+    for(const [i,title] of posters.entries()){
+      const x=[142,245,738][i];
+      R(c,'#34354a',x,43,85,59);R(c,['#ad91ca','#98b4bc','#c49e88'][i],x+4,47,77,51);
+      R(c,'#ffffff38',x+9,53,67,18);label(c,title,x+43,88,11,'#282840','center');
+    }
+    this.plant(92,155);this.plant(872,158);
+    if(!studio){
+      R(c,'#333249',506,136,260,72);R(c,'#595071',511,131,250,58);R(c,'#827298',511,131,250,5);
+      R(c,'#e0bd90',538,151,10,9);R(c,'#e0bd90',733,151,10,9);
+      label(c,'СТАРТ КВЕСТА',636,167,15,'#ede4ef','center');
+      R(c,'#4c4d65',415,422,151,100);R(c,'#a389a5',429,430,123,95);
+      R(c,'#656179',41,319,113,18);R(c,'#a18fae',41,312,113,12);
+      return;
+    }
+    for(const x of [289,427,565]){
+      R(c,'#2e354c',x,181,118,18);R(c,'#b198a2',x,171,118,12);
+      R(c,'#232b44',x+20,126,77,47);R(c,'#638396',x+24,130,69,37);
+      for(let j=0;j<3;j++)R(c,['#ceb0d9','#84b5bb','#efd1a7'][j],x+29+j*19,150,17,5);
+    }
+    R(c,'#899da9',719,166,119,108);R(c,'#a6b6bc',729,173,99,94);
+    R(c,'#31384f',715,157,126,8);
+    for(const x of [737,818]){
+      R(c,'#3c4256',x,250,4,40);R(c,'#3c4256',x-9,287,22,4);
+      R(c,'#e6c698',x-5,241,14,10);
+    }
+    R(c,'#2d3349',669,298,25,15);R(c,'#a69ab4',688,301,10,9);
+    R(c,'#363c55',679,313,4,26);R(c,'#363c55',671,335,20,4);
+  }
   desk(x,y) {const c=this.ctx;R(c,'#2b32413a',x+8,y+26,120,33);R(c,'#615165',x+7,y+21,7,33);R(c,'#615165',x+103,y+21,7,33);R(c,'#a77e68',x,y,120,38);R(c,'#d5b28b',x,y,120,29);R(c,'#e2c29b',x,y,120,4);R(c,'#f1e6d0',x+13,y+9,29,17);R(c,'#84999c',x+16,y+12,23,2);R(c,'#c4a5ad',x+71,y+8,29,19);R(c,'#80677d',x+71,y+8,4,19);}
   drawClassroom() {
     const c=this.ctx;R(c,'#20273b',-400,-400,1760,1300);

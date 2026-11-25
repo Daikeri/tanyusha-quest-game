@@ -33,3 +33,30 @@
 .participant-timer{font-size:1.5rem;color:var(--accent);font-variant-numeric:tabular-nums}
 .participant-note{margin-top:32px;border-top:1px solid var(--border);padding-top:20px}
 #participant-status{min-height:3em}
+#participant-quest{padding:12px 16px;border:1px solid var(--border);border-radius:8px;background:#161a2b}
+#participant-quest .eyebrow{margin:0 0 6px}
+#participant-progress{font-size:1.75rem;color:var(--accent)}
+#participant-station{margin:6px 0 0}
+.video-editor{min-inline-size:0;margin:12px 0 0;padding:12px;border:1px solid var(--border);border-radius:8px}
+.video-editor legend{font-weight:700;color:var(--accent);padding:0 6px}
+.video-editor h3{font-size:.95rem;margin:14px 0 8px}
+.video-editor h3 small{font-weight:400;color:var(--muted)}
+.video-brief{font-size:.9rem;margin:4px 0 12px}
+.video-feedback:not(:empty){padding:8px 12px;color:var(--accent);background:#2e2842;border-radius:5px}
+.video-mentor{margin:0;padding:10px;border-left:3px solid #9bddcd;background:#17312f;font-size:.9rem}
+.video-mentor p{margin:3px 0 0}
+.video-frames,.video-timeline{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.video-frames button{min-height:44px;padding:7px 3px}
+.video-slot{min-width:0;display:flex;flex-direction:column;justify-content:space-between;border:1px dashed #c4afff68;background:#171a29;border-radius:5px;padding:6px;text-align:center}
+.video-slot-name{padding:4px 2px;font-size:.78rem}
+.video-draggable{cursor:grab;touch-action:none;user-select:none}
+.video-slot-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px}
+.video-slot-controls button{min-height:34px;padding:0;background:#29283d;border:1px solid var(--border);border-radius:3px}
+.video-titles{display:grid;gap:6px}
+.video-titles label{display:flex;align-items:center;gap:6px;min-height:34px;font-size:.875rem}
+.video-titles input{accent-color:var(--accent)}
+.video-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+@media(min-width:430px){
+  .video-frames{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .video-timeline{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
