@@ -1,0 +1,45 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "rooms": {
+      "$room": {
+        ".read": "auth != null && auth.uid === 'nukA4eMs1ag5ikrHTjw485UD8sf1'",
+        ".write": "auth != null && auth.uid === 'nukA4eMs1ag5ikrHTjw485UD8sf1'",
+        "meta": {
+          ".read": "auth != null",
+          ".validate": "newData.hasChildren(['hostUid', 'status', 'createdAt']) && newData.child('hostUid').val() === 'nukA4eMs1ag5ikrHTjw485UD8sf1'"
+        },
+        "activePoll": {
+          ".read": "auth != null && root.child('rooms').child($room).child('members').child(auth.uid).exists()"
+        },
+        "members": {
+          "$uid": {
+            ".read": "auth != null && auth.uid === $uid",
+            ".write": "auth != null && auth.uid === $uid && !data.exists() && root.child('rooms').child($room).child('meta').exists() && root.child('rooms').child($room).child('meta/status').val() !== 'closed'",
+            ".validate": "newData.hasChildren(['joinedAt'])",
+            "joinedAt": {".validate": "newData.isNumber() && newData.val() === now"},
+            "$other": {".validate": false}
+          }
+        },
+        "polls": {
+          "$poll": {
+            "state": {
+              ".read": "auth != null && root.child('rooms').child($room).child('members').child(auth.uid).exists()"
+            },
+            "votes": {
+              "$uid": {
+                ".read": "auth != null && auth.uid === $uid",
+                ".write": "auth != null && auth.uid === $uid && newData.exists() && root.child('rooms').child($room).child('members').child(auth.uid).exists() && root.child('rooms').child($room).child('meta/status').val() === 'playing' && root.child('rooms').child($room).child('activePoll').val() === $poll && root.child('rooms').child($room).child('polls').child($poll).child('state/status').val() === 'open' && root.child('rooms').child($room).child('polls').child($poll).child('state/deadline').val() > now",
+                ".validate": "newData.hasChildren(['choice', 'at'])",
+                "choice": {".validate": "newData.val() === 'accept' || newData.val() === 'decline'"},
+                "at": {".validate": "newData.isNumber() && (auth.uid === 'nukA4eMs1ag5ikrHTjw485UD8sf1' || newData.val() === now)"},
+                "$other": {".validate": false}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

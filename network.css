@@ -1,0 +1,17 @@
+.network-section{border-top:1px solid var(--border);margin-top:18px;padding-top:18px}
+.network-section label{display:block;font-size:.875rem;margin:12px 0}
+.network-section input{display:block;width:100%;margin-top:6px;padding:10px;background:#10121e;color:var(--text);border:1px solid var(--border);border-radius:4px;font:inherit}
+.network-section button{margin:5px 0}
+#room-qr{background:white;padding:8px;border-radius:6px;max-width:270px;margin:12px auto}
+#room-qr svg{display:block;width:100%;height:auto}
+#room-link{display:block;color:var(--accent);font-size:.8rem;overflow-wrap:anywhere}
+.participant-page{display:block;min-height:100dvh;height:auto;overflow:auto;padding:24px 16px;background:radial-gradient(ellipse at top,#2d2542,#10121e 70%)}
+.participant-card{width:min(100%,480px);margin:6vh auto;padding:28px 22px;background:#202332;border:1px solid var(--border);border-radius:12px}
+.participant-card h1{font-size:1.75rem;line-height:1.25;margin:24px 0}
+.participant-card p{line-height:1.6}
+#connection-status,.participant-note{color:var(--muted);font-size:.875rem}
+.participant-options button{display:block;width:100%;text-align:left;min-height:64px;margin:14px 0;padding:18px;border:1px solid var(--border);border-radius:6px;background:#ffffff08;font:inherit}
+.participant-options button[aria-pressed=true]{border-color:var(--accent);background:#b89af725}
+.participant-timer{font-size:1.5rem;color:var(--accent);font-variant-numeric:tabular-nums}
+.participant-note{margin-top:32px;border-top:1px solid var(--border);padding-top:20px}
+#participant-status{min-height:3em}

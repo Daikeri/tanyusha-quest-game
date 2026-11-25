@@ -51,7 +51,7 @@ export const scenes = {
     say('sonya','Ну, если тебе так понятнее… Ну что, идём?'),
     say('nikita','Хм…'),
     {type:'poster',visible:false},
-    {type:'vote',id:'invitation',duration:30000},
+    {type:'vote',id:'invitation',duration:30000,question:'Пойти с Соней в «Ямолод»?',options:{accept:'А · Пойти с Соней',decline:'Б · Отправиться домой'}},
     {type:'branch',flag:'invitation',targets:{accept:'scene03a',decline:'scene03b'}},
   ]},
   scene03a:{id:'scene03a',chapter:'03',title:'Последствия выбора · пойти с Соней',commands:[

@@ -13,7 +13,7 @@
  * | {type:'title', kicker:string, text:string, duration:number}
  * | {type:'poster', visible:boolean}
  * | {type:'chat', messages:{from:string,text:string,attachment?:string}[]}
- * | {type:'vote', id:string, duration:number}
+ * | {type:'vote', id:string, duration:number, question?:string, options?:Record<Choice,string>}
  * | {type:'branch', flag:string, targets:Record<string,string>}
  * | {type:'goto', target:string}
  * | {type:'parallel', commands:Command[]}

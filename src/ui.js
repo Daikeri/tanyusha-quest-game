@@ -57,10 +57,15 @@ export class GameUI {
     const active=['active','awaiting-choice'].includes(voting.status);
     $('vote-controls').disabled=!active||this.clock.paused;
     $('vote-finish').disabled=voting.status!=='active';
-    for(const button of document.querySelectorAll('[data-choice]'))button.setAttribute('aria-pressed',String(button.dataset.choice===voting.choice));
+    for(const button of document.querySelectorAll('[data-choice]')){
+      button.setAttribute('aria-pressed',String(button.dataset.choice===voting.choice));
+      button.disabled=!!voting.network&&voting.status!=='awaiting-choice';
+    }
+    $('vote-counts').hidden=!voting.network;
+    if(voting.network)$('vote-counts').textContent=`Голосов: ${voting.counts.total} · А: ${voting.counts.accept} · Б: ${voting.counts.decline}`;
     $('vote-seconds').textContent=String(Math.ceil(voting.remaining/1000)).padStart(2,'0');
     $('vote-progress').style.width=`${voting.duration?voting.remaining/voting.duration*100:0}%`;
-    const hints={active:'', 'awaiting-choice':'Ожидание продолжения',ready:'ПРОБЕЛ — продолжить историю',idle:''};
+    const hints={connecting:'Подключаем голосование…',active:'', 'awaiting-choice':'Ожидание продолжения',ready:'ПРОБЕЛ — продолжить историю',idle:''};
     $('vote-hint').textContent=hints[voting.status];
     if(voting.status==='awaiting-choice')$('host-status').textContent='Отсчёт завершён. Задайте ветку А или Б.';
     if(voting.status==='active')$('host-status').textContent=`Выбор · ${Math.ceil(voting.remaining/1000)} сек.${voting.choice?' · ветка задана':''}`;

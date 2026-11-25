@@ -7,6 +7,7 @@
   <title>Я.МОЛОД — доступ открыт?</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23b6a1f2'/%3E%3Cpath d='M8 8h16v16H8z' fill='%2310121e'/%3E%3Cpath d='M12 12h8v4h-4v4h-4z' fill='%23b6a1f2'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="network.css">
 </head>
 <body>
   <div class="game-shell">
@@ -66,10 +67,32 @@
   </div>
 
   <aside id="host-panel" class="host-panel" aria-label="Панель ведущего" hidden>
-    <header><div><span class="eyebrow">ЛОКАЛЬНАЯ РЕПЕТИЦИЯ</span><h2>Панель ведущего</h2></div><button id="host-close" class="icon-button" aria-label="Закрыть панель">×</button></header>
+    <header><div><span id="host-mode" class="eyebrow">ЛОКАЛЬНАЯ РЕПЕТИЦИЯ</span><h2>Панель ведущего</h2></div><button id="host-close" class="icon-button" aria-label="Закрыть панель">×</button></header>
     <p id="host-status" role="status">История готова к запуску</p>
     <button id="pause" class="secondary-button">Пауза</button>
-    <fieldset id="vote-controls" disabled><legend>Результат выбора</legend><p>Задайте ветку вместо голосования участников.</p><button class="choice" data-choice="accept" aria-pressed="false"><b>А · Пойти с Соней</b><span>«Ладно, пошли. Но если там будут шишки и клей — я ухожу».</span></button><button class="choice" data-choice="decline" aria-pressed="false"><b>Б · Отправиться домой</b><span>«Нет, Сонь, сегодня без меня. Дома свои квесты».</span></button><button id="vote-finish" class="secondary-button">Завершить отсчёт</button></fieldset>
+    <fieldset id="vote-controls" disabled><legend>Результат выбора</legend><p id="vote-instructions">Задайте ветку вместо голосования участников.</p><p id="vote-counts" hidden></p><button class="choice" data-choice="accept" aria-pressed="false"><b>А · Пойти с Соней</b><span>«Ладно, пошли. Но если там будут шишки и клей — я ухожу».</span></button><button class="choice" data-choice="decline" aria-pressed="false"><b>Б · Отправиться домой</b><span>«Нет, Сонь, сегодня без меня. Дома свои квесты».</span></button><button id="vote-finish" class="secondary-button">Завершить отсчёт</button></fieldset>
+    <section class="network-section" aria-label="Игра с участниками">
+      <h2>Подключить участников</h2>
+      <p>Создайте сессию перед началом истории. Без сессии работает локальная репетиция.</p>
+      <button id="connect-host" class="secondary-button">Подключить Firebase</button>
+      <form id="host-login">
+        <label>Почта ведущего<input id="host-email" type="email" autocomplete="username" required></label>
+        <label>Пароль<input id="host-password" type="password" autocomplete="current-password" required></label>
+        <button class="secondary-button" type="submit">Войти</button>
+      </form>
+      <div id="network-actions" hidden>
+        <button id="create-room" class="secondary-button">Создать сессию</button>
+        <button id="close-room" class="secondary-button">Закрыть сессию</button>
+        <button id="host-logout" class="text-button">Выйти из аккаунта</button>
+      </div>
+      <p id="network-status" role="status">Сетевой режим не подключён.</p>
+      <div id="room-info" hidden>
+        <div id="room-qr" role="img" aria-label="QR-код для подключения к игре"></div>
+        <a id="room-link" target="_blank" rel="noopener"></a>
+        <button id="copy-room" class="secondary-button">Скопировать ссылку</button>
+        <p id="room-count"></p>
+      </div>
+    </section>
     <button id="restart" class="text-button">Начать заново</button><p class="host-help"><kbd>H</kbd> — панель · <kbd>Пробел</kbd> — реплика<br>Панель видна на этом же экране.</p>
   </aside>
 

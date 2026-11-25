@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10121e">
+  <title>Я.МОЛОД — участник</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="network.css">
+</head>
+<body class="participant-page">
+  <main class="participant-card">
+    <p class="eyebrow">Я.МОЛОД · ТВОЙ ВЫБОР</p>
+    <h1 id="participant-title">Подключаемся к игре</h1>
+    <p id="connection-status" role="status">Устанавливаем связь…</p>
+    <section id="participant-poll" hidden>
+      <p id="participant-timer" class="participant-timer"></p>
+      <div id="participant-options" class="participant-options"></div>
+    </section>
+    <p id="participant-status" role="status" aria-live="polite"></p>
+    <button id="join-retry" class="secondary-button" hidden>Попробовать снова</button>
+    <p class="participant-note">Смотрите историю на общем экране.<br>Вопросы появятся здесь автоматически.</p>
+  </main>
+  <noscript>Для участия включите JavaScript.</noscript>
+  <script type="module" src="src/participant.js"></script>
+</body>
+</html>
