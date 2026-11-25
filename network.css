@@ -8,8 +8,8 @@
 #entry-status,#room-status{font-size:.8rem;line-height:1.4;color:var(--muted)}
 #entry-status:empty,#room-status:empty{display:none}
 #rehearse{margin-top:12px}
-.start-screen:has(#room-info:not([hidden])){display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3%;padding-block:clamp(8px,2cqw,24px);padding-right:clamp(8px,2cqw,24px);overflow:auto}
-#room-info{text-align:center;align-self:start;justify-self:end;color:var(--text);background:#171a29f5;border:1px solid var(--border);border-radius:8px;padding:clamp(8px,1.5cqw,18px);width:clamp(118px,24cqw,286px)}
+.start-screen:has(#room-info:not([hidden])){display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3%;padding-top:0;padding-right:0;padding-bottom:clamp(8px,2cqw,24px);overflow:auto}
+#room-info{text-align:center;align-self:start;justify-self:end;color:var(--text);background:#171a29f5;border:1px solid var(--border);border-radius:8px 0 8px 8px;padding:clamp(8px,1.5cqw,18px);width:clamp(118px,24cqw,286px)}
 #room-title{font-size:clamp(.8rem,2cqw,1.2rem);margin:0 0 8px}
 #room-link{display:block;margin:auto;width:min(100%,250px)}
 #room-qr{display:block;background:white;border-radius:4px;overflow:hidden}
